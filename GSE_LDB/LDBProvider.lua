@@ -41,18 +41,14 @@ function dataobj:OnEnter()
   tooltip:Clear()
   tooltip:SetFont(baseFont)
   --tooltip:SetHeaderFont(red17font)
-  local y,x = tooltip:AddLine()
-  tooltip:SetCell(y, 1, L["GSE: Left Click to open the Sequence Editor"],"CENTER", 3)
-  y,x = tooltip:AddLine()
-  tooltip:SetCell(y, 1, L["GSE: Middle Click to open the Transmission Interface"],"CENTER", 3)
-  y,x = tooltip:AddLine()
-  tooltip:SetCell(y, 1, L["GSE: Right Click to open the GSE menu"],"CENTER", 3)
+  local y,x = tooltip:AddLine(nil, L["GSE: Left Click to open the Sequence Editor"], nil)
+  y,x = tooltip:AddLine(nil, L["GSE: Middle Click to open the Transmission Interface"], nil)
+  y,x = tooltip:AddLine(nil, L["GSE: Right Click to open the GSE menu"], nil)
 
   -- If in party add other users and their versions
   if not GSE.isEmpty(GSE.UnsavedOptions["PartyUsers"]) and GSEOptions.showGSEUsers then
     tooltip:AddSeparator()
-    y,x = tooltip:AddLine()
-    tooltip:SetCell(y,1,L["GSE Users"],"CENTER", 3)
+    y,x = tooltip:AddLine(nil, L["GSE Users"], nil)
     for k,v in pairs(GSE.UnsavedOptions["PartyUsers"]) do
       tooltip:AddLine(k, nil, v)
     end
@@ -62,30 +58,28 @@ function dataobj:OnEnter()
   -- Show GSE OOCQueue Information
   if GSEOptions.showGSEoocqueue then
     tooltip:AddSeparator()
-    y,x = tooltip:AddLine()
-    tooltip:SetCell(y, 1, string.format(L["The GSE Out of Combat queue is %s"], GSE.CheckOOCQueueStatus()),"CENTER", 3)
+    y,x = tooltip:AddLine(nil, string.format(L["The GSE Out of Combat queue is %s"], GSE.CheckOOCQueueStatus()), nil)
     local OOCStatusline = y
     tooltip:SetLineScript(y, "OnMouseDown", function(obj, button)
       GSE.ToggleOOCQueue()
-      tooltip:SetCell(OOCStatusline, 1, string.format(L["The GSE Out of Combat queue is %s"], GSE.CheckOOCQueueStatus()),"CENTER", 3)
+      tooltip:SetCell(OOCStatusline, 2, string.format(L["The GSE Out of Combat queue is %s"], GSE.CheckOOCQueueStatus()),"CENTER", 1)
     end)
     tooltip:AddSeparator()
     y,x = tooltip:AddLine()
     if table.getn(GSE.OOCQueue) > 0 then
-      tooltip:SetCell(y, 1, string.format(L["There are %i events in out of combat queue"], table.getn(GSE.OOCQueue)),"CENTER", 3)
+      tooltip:SetCell(y, 2, string.format(L["There are %i events in out of combat queue"], table.getn(GSE.OOCQueue)),"CENTER", 1)
       for k,v in ipairs(GSE.OOCQueue) do
         y,x = tooltip:AddLine()
         GSE.prepareTooltipOOCLine(tooltip, v, y, k)
       end
     else
       -- No Items
-      tooltip:SetCell(y, 1, string.format(L["There are no events in out of combat queue"]),"CENTER", 3)
+      tooltip:SetCell(y, 2, string.format(L["There are no events in out of combat queue"]),"CENTER", 1)
     end
   end
 
   tooltip:AddSeparator()
-  y,x = tooltip:AddLine()
-  tooltip:SetCell(y, 1, string.format(L["GSE Version: %s"], GSE.formatModVersion(GSE.VersionString)),"CENTER", 3)
+  y,x = tooltip:AddLine(nil, string.format(L["GSE Version: %s"], GSE.formatModVersion(GSE.VersionString)), nil)
   -- Use smart anchoring code to anchor the tooltip to our frame
   tooltip:SmartAnchorTo(self)
 
@@ -109,34 +103,6 @@ function dataobj:OnLeave()
 end
 
 local minimapMenuFrame = CreateFrame("Frame", "GSE_MinimapMenu", UIParent, "UIDropDownMenuTemplate")
-
-local minimapMenuDivider = {
-  hasArrow = false,
-  dist = 0,
-  isTitle = true,
-  isUninteractable = true,
-  notCheckable = true,
-  iconOnly = true,
-  isSeparator = true,
-  icon = "Interface\\Common\\UI-TooltipDivider-Transparent",
-  tCoordLeft = 0,
-  tCoordRight = 1,
-  tCoordTop = 0,
-  tCoordBottom = 1,
-  tSizeX = 0,
-  tSizeY = 8,
-  tFitDropDownSizeX = true,
-  text = "",
-  iconInfo = {
-    tCoordLeft = 0,
-    tCoordRight = 1,
-    tCoordTop = 0,
-    tCoordBottom = 1,
-    tSizeX = 0,
-    tSizeY = 8,
-    tFitDropDownSizeX = true
-  },
-}
 
 local function ShowGSEMinimapMenu()
   local classid = GSE.GetCurrentClassID()
@@ -162,7 +128,6 @@ local function ShowGSEMinimapMenu()
   local menu = {
     { text = L["Open Sequence Viewer"], notCheckable = true, func = function() GSE.GUIShowViewer() end },
     { text = L["Current Specialisation"], notCheckable = true, func = function() GSE:GSSlash("showspec") end },
-    minimapMenuDivider,
     { text = L["Maintenance"], notCheckable = true, hasArrow = true, menuList = {
       { text = L["Repair Saved Data"], notCheckable = true, func = function() GSE:GSSlash("repair") end },
       { text = L["Clean Orphaned Macros"], notCheckable = true, func = function() GSE:GSSlash("cleanorphans") end },
@@ -181,7 +146,6 @@ local function ShowGSEMinimapMenu()
     } },
     { text = L["Export Sequence"], notCheckable = true, hasArrow = true, menuList = exportEntries },
     { text = L["Load Sample Macros"], notCheckable = true, func = function() GSE:GSSlash("loadsamples") end },
-    minimapMenuDivider,
     { text = L["Options"], notCheckable = true, func = function()
       if GSE.OptionsPanel then
         InterfaceOptionsFrame_OpenToCategory(GSE.OptionsPanel)

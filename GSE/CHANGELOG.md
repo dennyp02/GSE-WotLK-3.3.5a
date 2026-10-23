@@ -13,7 +13,7 @@
 - Raised all GSE static popups above the editor/viewer so confirmation dialogs (e.g. delete macro) are never hidden behind an AceGUI window.
 - Reworked the editor/viewer layout to use AceGUI-native sizing (full/relative widths, a single `RelayoutEditor`/`RelayoutViewer` driven by AceGUI's own size callbacks) and removed fixed pixel math plus resize-triggered tab rebuilds. The editor and viewer now stay correctly laid out while being resized.
 - Added a GSE minimap button (LibDBIcon) using the addon icon (converted to TGA for 3.3.5a), with a `Show Minimap Button` option; position/hide persist in `GSEOptions.minimap`.
-- Fixed the minimap button tooltip error and replaced the right-click debugger shortcut with a right-click menu covering the `/gse` maintenance/tools commands, sequence export, samples, options, help and hide.
+- Fixed the minimap button tooltip (removed an unsupported LibQTip call and the oversized colspan rows) and replaced the right-click debugger shortcut with a right-click menu covering the `/gse` maintenance/tools commands, sequence export, samples, options, help and hide.
 - Fixed `/gse showspec` referencing an undefined class ID.
 - Requires in-game verification with ElvUI enabled and disabled.
 
