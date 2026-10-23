@@ -210,7 +210,7 @@ local ManualBackdrop = {
 }
 
 local function Constructor()
-	local frame = CreateFrame("Frame", string.format("%s%d", Type, AceGUI:GetNextWidgetNum(Type)), UIParent)
+	local frame = CreateFrame("Frame", string.format("GSE%s%d", Type, AceGUI:GetNextWidgetNum(Type)), UIParent)
 
 	frame:EnableMouse(true)
 	frame:SetScript("OnMouseDown", Frame_OnMouseDown)

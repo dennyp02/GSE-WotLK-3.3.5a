@@ -9,7 +9,7 @@
 - Normalized sequence names so generated names no longer create empty placeholder entries.
 - Fixed manual saves being ignored after the first save.
 - Hardened sequence loops against invalid saved entries.
-- Vendored a complete, consistent AceGUI 3.0 set (core + all standard widgets) into the private `GSE-AceGUI-3.0` namespace, replacing the mixed old-core/new-widget setup. Fixes the editor's tab strip and the dropdowns that rendered only their left edge.
+- Vendored a complete, consistent AceGUI 3.0 set (core + all standard widgets) into the private `GSE-AceGUI-3.0` namespace, replacing the mixed old-core/new-widget setup. All private frame names are `GSE`-prefixed so they cannot collide with the real AceGUI instance's frames. Fixes the editor's tab strip and the dropdowns that rendered only their left edge or had a dead arrow.
 - Requires in-game verification with ElvUI enabled and disabled.
 
 ## [2.6.55](https://github.com/TimothyLuke/GnomeSequencer-Enhanced/tree/2.6.55) (2021-06-09)

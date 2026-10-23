@@ -317,7 +317,7 @@ local methods = {
 
 	["CreateButton"] = function(self)
 		local num = AceGUI:GetNextWidgetNum("TreeGroupButton")
-		local button = CreateFrame("Button", ("AceGUI30TreeButton%d"):format(num), self.treeframe, "OptionsListButtonTemplate")
+		local button = CreateFrame("Button", ("GSEAceGUI30TreeButton%d"):format(num), self.treeframe, "OptionsListButtonTemplate")
 		button.obj = self
 
 		local icon = button:CreateTexture(nil, "OVERLAY")
@@ -635,7 +635,7 @@ local DraggerBackdrop  = {
 
 local function Constructor()
 	local num = AceGUI:GetNextWidgetNum(Type)
-	local frame = CreateFrame("Frame", string.format("%s%d", Type, num), UIParent)
+	local frame = CreateFrame("Frame", string.format("GSE%s%d", Type, num), UIParent)
 
 	local treeframe = CreateFrame("Frame", nil, frame)
 	treeframe:SetFrameLevel(frame:GetFrameLevel() + 1)
@@ -670,7 +670,7 @@ local function Constructor()
 	dragger:SetScript("OnMouseUp", Dragger_OnMouseUp)
 	dragger:EnableMouse(true)
 
-	local scrollbar = CreateFrame("Slider", ("AceConfigDialogTreeGroup%dScrollBar"):format(num), treeframe, "UIPanelScrollBarTemplate")
+	local scrollbar = CreateFrame("Slider", ("GSEAceConfigDialogTreeGroup%dScrollBar"):format(num), treeframe, "UIPanelScrollBarTemplate")
 	scrollbar:SetFrameLevel(treeframe:GetFrameLevel() + 1)
 	scrollbar:SetScript("OnValueChanged", nil)
 	scrollbar:SetPoint("TOPRIGHT", -10, -26)

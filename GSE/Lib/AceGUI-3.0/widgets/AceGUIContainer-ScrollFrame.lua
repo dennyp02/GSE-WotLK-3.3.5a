@@ -165,7 +165,7 @@ Constructor
 -------------------------------------------------------------------------------]]
 local function Constructor()
 	local num = AceGUI:GetNextWidgetNum(Type)
-	local frame = CreateFrame("Frame", string.format("%s%d", Type, num), UIParent)
+	local frame = CreateFrame("Frame", string.format("GSE%s%d", Type, num), UIParent)
 
 	local scrollframe = CreateFrame("ScrollFrame", nil, frame)
 	scrollframe:SetFrameLevel(frame:GetFrameLevel() + 1)
@@ -175,7 +175,7 @@ local function Constructor()
 	scrollframe:SetScript("OnMouseWheel", ScrollFrame_OnMouseWheel)
 	scrollframe:SetScript("OnSizeChanged", ScrollFrame_OnSizeChanged)
 
-	local scrollbar = CreateFrame("Slider", ("AceConfigDialogScrollFrame%dScrollBar"):format(num), scrollframe, "UIPanelScrollBarTemplate")
+	local scrollbar = CreateFrame("Slider", ("GSEAceConfigDialogScrollFrame%dScrollBar"):format(num), scrollframe, "UIPanelScrollBarTemplate")
 	scrollbar:SetFrameLevel(scrollframe:GetFrameLevel() + 1)
 	scrollbar:SetPoint("TOPLEFT", scrollframe, "TOPRIGHT", 4, -16)
 	scrollbar:SetPoint("BOTTOMLEFT", scrollframe, "BOTTOMRIGHT", 4, 16)

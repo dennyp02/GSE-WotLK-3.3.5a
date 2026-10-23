@@ -235,7 +235,7 @@ local methods = {
 	end,
 
 	["CreateTab"] = function(self, id)
-		local tabname = ("AceGUITabGroup%dTab%d"):format(self.num, id)
+		local tabname = ("GSEAceGUITabGroup%dTab%d"):format(self.num, id)
 		local tab = CreateFrame("Button", tabname, self.border)
 		tab:SetFrameLevel(self.border:GetFrameLevel() + 1)
 		tab:SetSize(115, 24)
@@ -491,7 +491,7 @@ local PaneBackdrop  = {
 
 local function Constructor()
 	local num = AceGUI:GetNextWidgetNum(Type)
-	local frame = CreateFrame("Frame", string.format("%s%d", Type, num), UIParent)
+	local frame = CreateFrame("Frame", string.format("GSE%s%d", Type, num), UIParent)
 	frame:SetHeight(100)
 	frame:SetWidth(100)
 	frame:SetFrameStrata("FULLSCREEN_DIALOG")

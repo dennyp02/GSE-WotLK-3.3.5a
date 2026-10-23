@@ -18,14 +18,14 @@ local _G = _G
 --[[-----------------------------------------------------------------------------
 Support functions
 -------------------------------------------------------------------------------]]
-if not AceGUIEditBoxInsertLink then
+if not GSEAceGUIEditBoxInsertLink then
 	-- upgradeable hook
-	hooksecurefunc("ChatEdit_InsertLink", function(...) return _G.AceGUIEditBoxInsertLink(...) end)
+	hooksecurefunc("ChatEdit_InsertLink", function(...) return _G.GSEAceGUIEditBoxInsertLink(...) end)
 end
 
-function _G.AceGUIEditBoxInsertLink(text)
+function _G.GSEAceGUIEditBoxInsertLink(text)
 	for i = 1, AceGUI:GetWidgetCount(Type) do
-		local editbox = _G["AceGUI-3.0EditBox"..i]
+		local editbox = _G["GSEAceGUI-3.0EditBox"..i]
 		if editbox and editbox:IsVisible() and editbox:HasFocus() then
 			editbox:Insert(text)
 			return true
@@ -207,10 +207,10 @@ Constructor
 -------------------------------------------------------------------------------]]
 local function Constructor()
 	local num  = AceGUI:GetNextWidgetNum(Type)
-	local frame = CreateFrame("Frame", string.format("%s%d", Type, num), UIParent)
+	local frame = CreateFrame("Frame", string.format("GSE%s%d", Type, num), UIParent)
 	frame:Hide()
 
-	local editbox = CreateFrame("EditBox", "AceGUI-3.0EditBox"..num, frame, "InputBoxTemplate")
+	local editbox = CreateFrame("EditBox", "GSEAceGUI-3.0EditBox"..num, frame, "InputBoxTemplate")
 	editbox:SetFrameLevel(frame:GetFrameLevel() + 1)
 	editbox:SetAutoFocus(false)
 	editbox:SetFontObject(ChatFontNormal)

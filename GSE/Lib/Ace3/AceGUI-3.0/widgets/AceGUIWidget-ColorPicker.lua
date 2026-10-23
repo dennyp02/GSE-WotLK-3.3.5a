@@ -169,7 +169,7 @@ local methods = {
 Constructor
 -------------------------------------------------------------------------------]]
 local function Constructor()
-	local frame = CreateFrame("Button", string.format("%s%d", Type, AceGUI:GetNextWidgetNum(Type)), UIParent)
+	local frame = CreateFrame("Button", string.format("GSE%s%d", Type, AceGUI:GetNextWidgetNum(Type)), UIParent)
 	frame:Hide()
 
 	frame:EnableMouse(true)

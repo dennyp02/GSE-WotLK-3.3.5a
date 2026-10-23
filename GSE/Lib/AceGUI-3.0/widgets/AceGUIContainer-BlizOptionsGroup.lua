@@ -99,7 +99,7 @@ local methods = {
 Constructor
 -------------------------------------------------------------------------------]]
 local function Constructor()
-	local frame = CreateFrame("Frame", string.format("%s%d", Type, AceGUI:GetNextWidgetNum(Type)), InterfaceOptionsFramePanelContainer)
+	local frame = CreateFrame("Frame", string.format("GSE%s%d", Type, AceGUI:GetNextWidgetNum(Type)), InterfaceOptionsFramePanelContainer)
 	frame:SetFrameLevel(InterfaceOptionsFramePanelContainer:GetFrameLevel() + 1)
 	frame:Hide()
 

@@ -66,7 +66,7 @@ local PaneBackdrop  = {
 }
 
 local function Constructor()
-	local frame = CreateFrame("Frame", string.format("%s%d", Type, AceGUI:GetNextWidgetNum(Type)), UIParent)
+	local frame = CreateFrame("Frame", string.format("GSE%s%d", Type, AceGUI:GetNextWidgetNum(Type)), UIParent)
 	frame:SetFrameStrata("FULLSCREEN_DIALOG")
 
 	local titletext = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")

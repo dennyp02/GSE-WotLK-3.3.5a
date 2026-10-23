@@ -126,7 +126,7 @@ local methods = {
 
 	["SetFont"] = function(self, font, height, flags)
 		if not self.fontObject then
-			self.fontObject = CreateFont("AceGUI30LabelFont" .. AceGUI:GetNextWidgetNum(Type))
+			self.fontObject = CreateFont("GSEAceGUI30LabelFont" .. AceGUI:GetNextWidgetNum(Type))
 		end
 		self.fontObject:SetFont(font, height, flags)
 		self:SetFontObject(self.fontObject)
@@ -156,7 +156,7 @@ local methods = {
 Constructor
 -------------------------------------------------------------------------------]]
 local function Constructor()
-	local frame = CreateFrame("Frame", string.format("%s%d", Type, AceGUI:GetNextWidgetNum(Type)), UIParent)
+	local frame = CreateFrame("Frame", string.format("GSE%s%d", Type, AceGUI:GetNextWidgetNum(Type)), UIParent)
 	frame:Hide()
 
 	local label = frame:CreateFontString(nil, "BACKGROUND", "GameFontHighlightSmall")

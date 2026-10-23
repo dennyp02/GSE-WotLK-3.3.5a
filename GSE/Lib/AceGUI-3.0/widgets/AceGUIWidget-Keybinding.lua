@@ -182,8 +182,8 @@ end
 
 local function Constructor()
 	local num = AceGUI:GetNextWidgetNum(Type)
-	local frame = CreateFrame("Frame", string.format("%s%d", Type, num), UIParent)
-	local button = CreateFrame("Button", "AceGUI30KeybindingButton" .. num, frame, "UIPanelButtonTemplate")
+	local frame = CreateFrame("Frame", string.format("GSE%s%d", Type, num), UIParent)
+	local button = CreateFrame("Button", "GSEAceGUI30KeybindingButton" .. num, frame, "UIPanelButtonTemplate")
 	button:SetFrameLevel(frame:GetFrameLevel() + 1)
 
 	button:EnableMouse(true)

@@ -14,14 +14,14 @@ local _G = _G
 Support functions
 -------------------------------------------------------------------------------]]
 
-if not AceGUIMultiLineEditBoxInsertLink then
+if not GSEAceGUIMultiLineEditBoxInsertLink then
 	-- upgradeable hook
-	hooksecurefunc("ChatEdit_InsertLink", function(...) return _G.AceGUIMultiLineEditBoxInsertLink(...) end)
+	hooksecurefunc("ChatEdit_InsertLink", function(...) return _G.GSEAceGUIMultiLineEditBoxInsertLink(...) end)
 end
 
-function _G.AceGUIMultiLineEditBoxInsertLink(text)
+function _G.GSEAceGUIMultiLineEditBoxInsertLink(text)
 	for i = 1, AceGUI:GetWidgetCount(Type) do
-		local editbox = _G[("MultiLineEditBox%uEdit"):format(i)]
+		local editbox = _G[("GSEMultiLineEditBox%uEdit"):format(i)]
 		if editbox and editbox:IsVisible() and editbox:HasFocus() then
 			editbox:Insert(text)
 			return true
@@ -275,7 +275,7 @@ local backdrop = {
 local function Constructor()
 	local widgetNum = AceGUI:GetNextWidgetNum(Type)
 
-	local frame = CreateFrame("Frame", string.format("%s%d", Type, widgetNum), UIParent)
+	local frame = CreateFrame("Frame", string.format("GSE%s%d", Type, widgetNum), UIParent)
 	frame:Hide()
 
 	local label = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -285,7 +285,7 @@ local function Constructor()
 	label:SetText(ACCEPT)
 	label:SetHeight(10)
 
-	local button = CreateFrame("Button", ("%s%dButton"):format(Type, widgetNum), frame, "UIPanelButtonTemplate")
+	local button = CreateFrame("Button", ("GSE%s%dButton"):format(Type, widgetNum), frame, "UIPanelButtonTemplate")
 	button:SetFrameLevel(frame:GetFrameLevel() + 1)
 	button:SetPoint("BOTTOMLEFT", 0, 4)
 	button:SetHeight(22)
@@ -306,7 +306,7 @@ local function Constructor()
 	scrollBG:SetBackdropColor(0, 0, 0)
 	scrollBG:SetBackdropBorderColor(0.4, 0.4, 0.4)
 
-	local scrollFrame = CreateFrame("ScrollFrame", ("%s%dScrollFrame"):format(Type, widgetNum), frame, "UIPanelScrollFrameTemplate")
+	local scrollFrame = CreateFrame("ScrollFrame", ("GSE%s%dScrollFrame"):format(Type, widgetNum), frame, "UIPanelScrollFrameTemplate")
 	scrollFrame:SetFrameLevel(frame:GetFrameLevel() + 1)
 
 	local scrollBar = _G[scrollFrame:GetName() .. "ScrollBar"]
@@ -329,7 +329,7 @@ local function Constructor()
 	scrollFrame:HookScript("OnVerticalScroll", OnVerticalScroll)
 	scrollFrame:HookScript("OnScrollRangeChanged", OnScrollRangeChanged)
 
-	local editBox = CreateFrame("EditBox", ("%s%dEdit"):format(Type, widgetNum), scrollFrame)
+	local editBox = CreateFrame("EditBox", ("GSE%s%dEdit"):format(Type, widgetNum), scrollFrame)
 	editBox:SetFrameLevel(scrollFrame:GetFrameLevel() + 1)
 	editBox:SetAllPoints()
 	editBox:SetFontObject(ChatFontNormal)
