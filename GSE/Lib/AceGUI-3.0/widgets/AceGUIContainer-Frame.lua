@@ -1,7 +1,7 @@
 --[[-----------------------------------------------------------------------------
 Frame Container
 -------------------------------------------------------------------------------]]
-local Type, Version = "Frame", 32
+local Type, Version = "Frame", 33
 local AceGUI = LibStub and LibStub("GSE-AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
 
@@ -22,7 +22,15 @@ local function Button_OnClick(frame)
 end
 
 local function Frame_OnShow(frame)
-	frame.obj:Fire("OnShow")
+	local widget = frame.obj
+	local status = widget.status or widget.localstatus
+	if status then
+		status.top = nil
+		status.left = nil
+	end
+	frame:ClearAllPoints()
+	frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+	widget:Fire("OnShow")
 end
 
 local function Frame_OnClose(frame)

@@ -28,6 +28,7 @@ The existing `GSE/CHANGELOG.md` stays as-is; this file is a staging list for the
 - **Duplicate-name guard**: checks sequences across every class (case-insensitive) and also blocks the editor's New-tab auto-save, not just the Save button.
 - **Selected card highlight**: selected Sequence Viewer cards now show a full class-coloured border, a class-tinted background and a thicker left accent bar.
 - **Card padding**: Sequence Viewer cards now use uniform padding, a fixed icon column and aligned name/help text.
+- **Centered windows**: every GSE window opens centered on the screen, even after being moved previously.
 - **`/gse showspec`**: fixed the undefined class ID in its output.
 - **TabGroup**: renders as connected horizontal top tabs.
 - **Dropdowns**: full body + working arrow (fixed by the consistent widget set + namespacing).

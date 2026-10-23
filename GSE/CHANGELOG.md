@@ -22,6 +22,7 @@
 - Duplicate-name validation now checks every class (case-insensitive) and also guards the editor's New-tab auto-save, so a new sequence can no longer be created over an existing name.
 - Selected Sequence Viewer cards now use a full class-coloured border, a class-tinted background and a thicker left accent bar.
 - Sequence Viewer cards now use uniform 10 px padding, a fixed icon column and aligned text/help with a consistent header gap.
+- All GSE windows now open centered on the screen every time they are shown.
 - Requires in-game verification with ElvUI enabled and disabled.
 
 ## [2.6.55](https://github.com/TimothyLuke/GnomeSequencer-Enhanced/tree/2.6.55) (2021-06-09)
