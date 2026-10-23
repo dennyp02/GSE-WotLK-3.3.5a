@@ -15,6 +15,7 @@
 - Added a GSE minimap button (LibDBIcon) using the addon icon (converted to TGA for 3.3.5a), with a `Show Minimap Button` option; position/hide persist in `GSEOptions.minimap`.
 - Minimap button: left-click opens `/gse`, right-click opens a menu covering the `/gse` maintenance/tools commands, sequence export, samples, options, help and hide. Removed the hover tooltip.
 - Fixed `/gse showspec` referencing an undefined class ID.
+- Redesigned the Sequence Viewer: compact auto-sized cards with class-coloured names and accents, grouped class headings, a live search filter, a cleaner auto-width toolbar and a subtle selection highlight.
 - Requires in-game verification with ElvUI enabled and disabled.
 
 ## [2.6.55](https://github.com/TimothyLuke/GnomeSequencer-Enhanced/tree/2.6.55) (2021-06-09)

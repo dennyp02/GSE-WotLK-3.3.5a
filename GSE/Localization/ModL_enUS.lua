@@ -456,3 +456,7 @@ L["No sequences available"] = true
 L["Load Sample Macros"] = true
 L["Help"] = true
 L["Hide Minimap Button"] = true
+L["Search"] = true
+L["No sequences available."] = true
+L["No sequences match your search."] = true
+L["Global"] = true

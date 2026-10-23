@@ -21,6 +21,7 @@ The existing `GSE/CHANGELOG.md` stays as-is; this file is a staging list for the
 - **Resize handling**: native AceGUI sizing with a single relayout function (no custom `OnSizeChanged`, no fixed pixel math, no tab rebuild on resize); tabs, toolbar, and the bottom button row stay laid out while resizing.
 - **Minimap button**: LibDBIcon button using the GSE icon (converted to TGA for 3.3.5a), with a `Show Minimap Button` option; position/hide persist in `GSEOptions.minimap`. Left-click opens `/gse`; right-click opens the command menu; no hover tooltip.
 - **Minimap right-click menu**: right-click opens a menu for the `/gse` maintenance/tools commands, sequence export, samples, options, help and hiding the button.
+- **Sequence Viewer redesign**: compact auto-sized cards with class-coloured names and accents, grouped class headings, a live search filter, an auto-width toolbar and a subtle selection highlight instead of the old fixed 300 px/yellow-border cards.
 - **`/gse showspec`**: fixed the undefined class ID in its output.
 - **TabGroup**: renders as connected horizontal top tabs.
 - **Dropdowns**: full body + working arrow (fixed by the consistent widget set + namespacing).
