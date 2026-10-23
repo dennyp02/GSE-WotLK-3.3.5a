@@ -39,7 +39,7 @@ end
 local function Tab_SetText(frame, text)
 	frame:_SetText(text)
 	local width = frame.obj.frame.width or frame.obj.frame:GetWidth() or 0
-	PanelTemplates_TabResize(frame, 0, nil, nil, width, frame:GetFontString():GetStringWidth())
+	PanelTemplates_TabResize(frame, 0, nil, width)
 end
 
 local function Tab_SetSelected(frame, selected)
@@ -103,64 +103,11 @@ local methods = {
 
 	["CreateTab"] = function(self, id)
 		local tabname = ("AceGUITabGroup%dTab%d"):format(self.num, id)
-		local tab = CreateFrame("Button", tabname, self.border)
-		tab:SetSize(115, 24)
-		tab.deselectedTextY = -3
-		tab.selectedTextY = -2
-
-		tab.LeftDisabled = tab:CreateTexture(tabname .. "LeftDisabled", "BORDER")
-		tab.LeftDisabled:SetTexture("Interface\\OptionsFrame\\UI-OptionsFrame-ActiveTab")
-		tab.LeftDisabled:SetSize(20, 24)
-		tab.LeftDisabled:SetPoint("BOTTOMLEFT", 0, -3)
-		tab.LeftDisabled:SetTexCoord(0, 0.15625, 0, 1.0)
-
-		tab.MiddleDisabled = tab:CreateTexture(tabname .. "MiddleDisabled", "BORDER")
-		tab.MiddleDisabled:SetTexture("Interface\\OptionsFrame\\UI-OptionsFrame-ActiveTab")
-		tab.MiddleDisabled:SetSize(88, 24)
-		tab.MiddleDisabled:SetPoint("LEFT", tab.LeftDisabled, "RIGHT")
-		tab.MiddleDisabled:SetTexCoord(0.15625, 0.84375, 0, 1.0)
-
-		tab.RightDisabled = tab:CreateTexture(tabname .. "RightDisabled", "BORDER")
-		tab.RightDisabled:SetTexture("Interface\\OptionsFrame\\UI-OptionsFrame-ActiveTab")
-		tab.RightDisabled:SetSize(20, 24)
-		tab.RightDisabled:SetPoint("LEFT", tab.MiddleDisabled, "RIGHT")
-		tab.RightDisabled:SetTexCoord(0.84375, 1.0, 0, 1.0)
-
-		tab.Left = tab:CreateTexture(tabname .. "Left", "BORDER")
-		tab.Left:SetTexture("Interface\\OptionsFrame\\UI-OptionsFrame-InActiveTab")
-		tab.Left:SetSize(20, 24)
-		tab.Left:SetPoint("TOPLEFT")
-		tab.Left:SetTexCoord(0, 0.15625, 0, 1.0)
-
-		tab.Middle = tab:CreateTexture(tabname .. "Middle", "BORDER")
-		tab.Middle:SetTexture("Interface\\OptionsFrame\\UI-OptionsFrame-InActiveTab")
-		tab.Middle:SetSize(88, 24)
-		tab.Middle:SetPoint("LEFT", tab.Left, "RIGHT")
-		tab.Middle:SetTexCoord(0.15625, 0.84375, 0, 1.0)
-
-		tab.Right = tab:CreateTexture(tabname .. "Right", "BORDER")
-		tab.Right:SetTexture("Interface\\OptionsFrame\\UI-OptionsFrame-InActiveTab")
-		tab.Right:SetSize(20, 24)
-		tab.Right:SetPoint("LEFT", tab.Middle, "RIGHT")
-		tab.Right:SetTexCoord(0.84375, 1.0, 0, 1.0)
-
-		tab.Text = tab:CreateFontString(tabname .. "Text")
-		tab:SetFontString(tab.Text)
-
-		tab:SetNormalFontObject(GameFontNormalSmall)
-		tab:SetHighlightFontObject(GameFontHighlightSmall)
-		tab:SetDisabledFontObject(GameFontHighlightSmall)
-		tab:SetHighlightTexture("Interface\\PaperDollInfoFrame\\UI-Character-Tab-Highlight", "ADD")
-		tab.HighlightTexture = tab:GetHighlightTexture()
-		tab.HighlightTexture:ClearAllPoints()
-		tab.HighlightTexture:SetPoint("LEFT", tab, "LEFT", 10, -4)
-		tab.HighlightTexture:SetPoint("RIGHT", tab, "RIGHT", -10, -4)
-		_G[tabname .. "HighlightTexture"] = tab.HighlightTexture
-
+		local tab = CreateFrame("Button", tabname, self.border, "OptionsFrameTabButtonTemplate")
 		tab.obj = self
 		tab.id = id
 
-		tab.text = tab.Text -- compat
+		tab.text = _G[tabname .. "Text"]
 		tab.text:ClearAllPoints()
 		tab.text:SetPoint("LEFT", 14, -3)
 		tab.text:SetPoint("RIGHT", -12, -3)
@@ -307,7 +254,7 @@ local methods = {
 			end
 			
 			for i = starttab, endtab do
-				PanelTemplates_TabResize(tabs[i], padding + 4, nil, nil, width, tabs[i]:GetFontString():GetStringWidth())
+				PanelTemplates_TabResize(tabs[i], padding + 4, nil, width)
 			end
 			starttab = endtab + 1
 		end

@@ -2,6 +2,14 @@
 
 Rules the agent MUST follow. The user has explicitly stated these.
 
+## Trust the user — they are not a liar
+
+- The user is the sole authority on what they see on their own screen and what the addon does/doesn't do.
+- If the user describes a behavior (e.g. "tabs are vertical"), that is fact. Never contradict it with the vision agent's description or your own inference.
+- If your analysis or the vision agent disagrees with the user, the user is right and your analysis is wrong.
+- If you are unsure what the user means or see something inconsistent, **stop and ask** — do not assume and do not implement.
+- The vision subagent is a tool to assist, not an authority over the user.
+
 ## Planning first — ALWAYS ask before implementing
 
 - **Plan mode is the default.** Investigate and report findings FIRST. Do NOT edit any code until the user explicitly gives the go-ahead (e.g. "yes", "proceed", "do it").
