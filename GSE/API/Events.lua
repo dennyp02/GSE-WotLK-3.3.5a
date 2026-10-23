@@ -206,7 +206,7 @@ function GSE:ADDON_LOADED(event, addon)
 
   LibStub("AceConfig-3.0"):RegisterOptionsTable("GSE", GSE.GetOptionsTable(), {"gseo"})
   if addon == GNOME then
-    LibStub("AceConfigDialog-3.0"):AddToBlizOptions("GSE", "|cffff0000GSE:|r Gnome Sequencer Enhanced")
+    GSE.OptionsPanel = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("GSE", "|cffff0000GSE:|r Gnome Sequencer Enhanced")
     if not GSEOptions.HideLoginMessage then
       GSE.Print(GSEOptions.AuthorColour .. L["GnomeSequencer-Enhanced loaded.|r  Type "] .. GSEOptions.CommandColour .. L["/gs help|r to get started."], GNOME)
       GSE.Print(L["New: Type "] .. GSEOptions.CommandColour .. "/gse loadsamples" .. L["|r to load sample macros for your class."], GNOME)
@@ -337,10 +337,9 @@ GSE:RegisterChatCommand("gse", "GSSlash")
 --- Handle slash commands
 function GSE:GSSlash(input)
   if string.lower(input) == "showspec" then
-    local currentSpec = GSE.GetCurrentSpecID()
-    local currentSpecID, specname, specicon = GSE.GetCurrentSpecID()
-   -- local _, specname, specdescription, specicon, _, specrole, specclass = GetSpecializationInfoByID(currentSpecID)
-    GSE.Print(L["Your current Specialisation is "] .. currentSpecID .. ':' .. specname .. L["  The Alternative ClassID is "] .. currentclassId, GNOME)
+    local currentSpecID, specname = GSE.GetCurrentSpecID()
+    local currentclassId = GSE.GetCurrentClassID()
+    GSE.Print(L["Your current Specialisation is "] .. tostring(currentSpecID) .. ':' .. tostring(specname) .. L["  The Alternative ClassID is "] .. tostring(currentclassId), GNOME)
   elseif string.lower(input) == "help" then
     PrintGnomeHelp()
   elseif string.lower(input) == "cleanorphans" or string.lower(input) == "clean" then
