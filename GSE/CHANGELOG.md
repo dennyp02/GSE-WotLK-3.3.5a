@@ -9,6 +9,7 @@
 - Normalized sequence names so generated names no longer create empty placeholder entries.
 - Fixed manual saves being ignored after the first save.
 - Hardened sequence loops against invalid saved entries.
+- Rebuilt the sequence editor's TabGroup widget (manual tab textures + local panel-template helpers) so tabs render as connected horizontal tabs instead of disconnected/frozen pieces.
 - Requires in-game verification with ElvUI enabled and disabled.
 
 ## [2.6.55](https://github.com/TimothyLuke/GnomeSequencer-Enhanced/tree/2.6.55) (2021-06-09)
