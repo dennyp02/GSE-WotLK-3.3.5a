@@ -38,9 +38,26 @@ editframe.Bottom = fbottom
 editframe.Width = fwidth
 editframe.Height = fheight
 
+local syncingEditorSize = false
+local function SyncEditorContentSize()
+  if syncingEditorSize then return end
+  local width, height = editframe.frame:GetWidth(), editframe.frame:GetHeight()
+  if not width or not height or width <= 0 or height <= 0 then return end
+  syncingEditorSize = true
+  editframe:SetWidth(width)
+  editframe:SetHeight(height)
+  syncingEditorSize = false
+  editframe.Width = width
+  editframe.Height = height
+end
+
 editframe:SetTitle(L["Sequence Editor"])
 --editframe:SetStatusText(L["Gnome Sequencer: Sequence Editor."])
 editframe:SetCallback("OnClose", function (self)
+  if GSE.GUIEditorRefreshTimer then
+    GSE:CancelTimer(GSE.GUIEditorRefreshTimer)
+    GSE.GUIEditorRefreshTimer = nil
+  end
   editframe:Hide();
   if editframe.save then
     local event = {}
@@ -62,80 +79,73 @@ editframe.frame:SetMinResize(600, 500)
 -- Use 100% of screen height which should be constrained by system limits
 local defaultHeight = GetScreenHeight() * 1.0
 editframe:SetCallback("OnShow", function()
-  editframe.frame:SetHeight(defaultHeight)
+  editframe:SetHeight(defaultHeight)
+  SyncEditorContentSize()
+  if GSE.ScheduleEditorTabRefresh then
+    GSE.ScheduleEditorTabRefresh()
+  end
 end)
 editframe.frame:SetScript("OnSizeChanged", function ()
-  editframe.Left, editframe.Bottom, editframe.Width, editframe.Height = editframe.frame:GetBoundsRect()
+  if syncingEditorSize then return end
+  local left, bottom, width, height = editframe.frame:GetBoundsRect()
+  if not width or not height then return end
+  editframe.Left = left
+  editframe.Bottom = bottom
+
   local screenHeight = GetScreenHeight()
   local screenWidth = GetScreenWidth()
   local maxHeight = screenHeight - 40  -- Leave some space at top/bottom
   local maxWidth = screenWidth - 40    -- Leave some space at sides
-  
-  -- Get current position
-  local top = editframe.frame:GetTop()
-  local bottom = editframe.frame:GetBottom()
-  local left = editframe.frame:GetLeft()
-  local right = editframe.frame:GetRight()
-  
-  -- Check if we need to constrain the size or reposition
+
+  local newHeight = height
+  local newWidth = width
   local needsResize = false
-  local needsMove = false
-  local newHeight = editframe.Height
-  local newWidth = editframe.Width
-  
-  if editframe.Height > maxHeight then
+
+  if height > maxHeight then
     newHeight = maxHeight
     needsResize = true
   end
-  
-  if editframe.Width > maxWidth then
+
+  if width > maxWidth then
     newWidth = maxWidth
     needsResize = true
   end
-  
-  -- Check if window is going off screen edges
-  if top and top > screenHeight then
-    needsMove = true
-  end
-  
-  if bottom and bottom < 0 then
-    needsMove = true
-  end
-  
-  if left and left < 0 then
-    needsMove = true
-  end
-  
-  if right and right > screenWidth then
-    needsMove = true
-  end
-  
-  -- Apply constraints if needed
+
   if needsResize then
     editframe.frame:SetHeight(newHeight)
     editframe.frame:SetWidth(newWidth)
-    editframe.Height = newHeight
-    editframe.Width = newWidth
   end
-  
+
+  -- Get current position
+  local top = editframe.frame:GetTop()
+  local bottomPos = editframe.frame:GetBottom()
+  local leftPos = editframe.frame:GetLeft()
+  local right = editframe.frame:GetRight()
+
+  local needsMove = (top and top > screenHeight)
+    or (bottomPos and bottomPos < 0)
+    or (leftPos and leftPos < 0)
+    or (right and right > screenWidth)
+
   -- Reposition if off screen
   if needsMove then
     local newPoint = {}
-    newPoint.x = math.min(math.max(left or 20, 20), screenWidth - newWidth - 20)
-    newPoint.y = math.min(math.max(bottom or 20, 20), screenHeight - newHeight - 20)
+    newPoint.x = math.min(math.max(leftPos or 20, 20), screenWidth - newWidth - 20)
+    newPoint.y = math.min(math.max(bottomPos or 20, 20), screenHeight - newHeight - 20)
     editframe.frame:ClearAllPoints()
     editframe.frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", newPoint.x, newPoint.y)
   end
-  
+
+  SyncEditorContentSize()
+
   -- Update TabGroup height and layout
   if editframe.updateTabGroupHeight then
     editframe.updateTabGroupHeight()
   end
   editframe:DoLayout()
-  
-  -- Trigger a layout refresh on the TabGroup's content
-  if editframe.ContentContainer and editframe.ContentContainer.LayoutFinished then
-    editframe.ContentContainer:Fire("OnHeightSet")
+
+  if GSE.ScheduleEditorTabRefresh then
+    GSE.ScheduleEditorTabRefresh()
   end
 end)
 
@@ -161,6 +171,23 @@ function GSE.GUICreateEditorTabs()
       value="new"
     }  )
   return tabl
+end
+
+function GSE.ScheduleEditorTabRefresh()
+  if GSE.GUIEditorRefreshTimer then
+    GSE:CancelTimer(GSE.GUIEditorRefreshTimer)
+  end
+  GSE.GUIEditorRefreshTimer = GSE:ScheduleTimer(function()
+    GSE.GUIEditorRefreshTimer = nil
+    local frame = GSE.GUIEditFrame
+    if frame and frame:IsShown() and frame.ContentContainer then
+      local group = frame.SelectedTab or "config"
+      if group ~= "new" then
+        GSE.GUISelectEditorTab(frame.ContentContainer, "Resize", group)
+        frame:DoLayout()
+      end
+    end
+  end, 0.15)
 end
 
 function GSE.GUIEditorPerformLayout(frame)
@@ -207,11 +234,13 @@ function GSE.GUIEditorPerformLayout(frame)
     GSE.GUISelectEditorTab(container, event, group)
   end)
   tabgrp:SetFullWidth(true)
-  -- Don't use SetFullHeight(true) as it causes unbounded growth
-  -- Instead, calculate available height after accounting for header and buttons
+  -- Don't use SetFullHeight(true) as it causes unbounded growth.
+  -- Calculate from the actual Frame content size and measured child heights.
   local function updateTabGroupHeight()
-    local availableHeight = editframe.Height - 150 -- Account for header, buttons, and padding
-    tabgrp:SetHeight(math.max(300, availableHeight)) -- Minimum height of 300
+    local contentHeight = (editframe.content and editframe.content:GetHeight()) or editframe.Height or 500
+    local headerHeight = (headerGroup.frame and headerGroup.frame:GetHeight()) or 80
+    local buttonHeight = 30
+    tabgrp:SetHeight(math.max(220, contentHeight - headerHeight - buttonHeight - 20))
   end
   updateTabGroupHeight()
   editframe.updateTabGroupHeight = updateTabGroupHeight
@@ -234,7 +263,7 @@ function GSE.GUIEditorPerformLayout(frame)
   local editButtonGroup = AceGUI:Create("SimpleGroup")
   editButtonGroup:SetFullWidth(true)
   editButtonGroup:SetLayout("Flow")
-  editButtonGroup:SetHeight(15)
+  editButtonGroup:SetHeight(30)
 
   local savebutton = AceGUI:Create("Button")
   savebutton:SetText(L["Save"])
@@ -280,21 +309,16 @@ function GSE:GUIDrawMetadataEditor(container)
   editframe.iconpicker:SetImage(GSE.GetMacroIcon(editframe.ClassID, editframe.SequenceName))
 
 
-  local scrollcontainer = AceGUI:Create("SimpleGroup") -- "InlineGroup" is also good
-  scrollcontainer:SetFullWidth(true)
-  -- Better height calculation that accounts for minimum space needed
-  local availableHeight = math.max(100, editframe.Height - 280) -- Ensure minimum height
-  scrollcontainer:SetHeight(availableHeight)
-  scrollcontainer:SetLayout("Fill") -- important!
-
+  local contentHeight = (container.content and container.content:GetHeight()) or (editframe.Height - 57) or 300
+  local availableHeight = math.max(100, contentHeight - 10)
   local contentcontainer = AceGUI:Create("ScrollFrame")
-  -- Ensure the scroll frame doesn't grow beyond available space
+  contentcontainer:SetFullWidth(true)
+  contentcontainer:SetHeight(availableHeight)
   contentcontainer:SetAutoAdjustHeight(false)
-  scrollcontainer:AddChild(contentcontainer)
 
   local metasimplegroup = AceGUI:Create("SimpleGroup")
   metasimplegroup:SetLayout("Flow")
-  metasimplegroup:SetWidth(editframe.Width - 100)
+  metasimplegroup:SetFullWidth(true)
 
   local speciddropdown = AceGUI:Create("Dropdown")
   speciddropdown:SetLabel(L["Specialisation / Class ID"])
@@ -346,7 +370,7 @@ function GSE:GUIDrawMetadataEditor(container)
 
   local helpgroup1 = AceGUI:Create("SimpleGroup")
   helpgroup1:SetLayout("Flow")
-  helpgroup1:SetWidth(editframe.Width - 100)
+  helpgroup1:SetFullWidth(true)
 
 
   local helplinkeditbox = AceGUI:Create("EditBox")
@@ -381,7 +405,7 @@ function GSE:GUIDrawMetadataEditor(container)
 
   local defgroup1 = AceGUI:Create("SimpleGroup")
   defgroup1:SetLayout("Flow")
-  defgroup1:SetWidth(editframe.Width - 100)
+  defgroup1:SetFullWidth(true)
 
 
   local defaultdropdown = AceGUI:Create("Dropdown")
@@ -418,7 +442,7 @@ function GSE:GUIDrawMetadataEditor(container)
 
   local defgroup2 = AceGUI:Create("SimpleGroup")
   defgroup2:SetLayout("Flow")
-  defgroup2:SetWidth(editframe.Width - 100)
+  defgroup2:SetFullWidth(true)
 
   local mythicdropdown = AceGUI:Create("Dropdown")
   mythicdropdown:SetLabel(L["Mythic"])
@@ -458,7 +482,7 @@ function GSE:GUIDrawMetadataEditor(container)
 
   local defgroup3 = AceGUI:Create("SimpleGroup")
   defgroup3:SetLayout("Flow")
-  defgroup3:SetWidth(editframe.Width - 100)
+  defgroup3:SetFullWidth(true)
 
 
   local dungeondropdown = AceGUI:Create("Dropdown")
@@ -497,7 +521,7 @@ function GSE:GUIDrawMetadataEditor(container)
 
   local defgroup4 = AceGUI:Create("SimpleGroup")
   defgroup4:SetLayout("Flow")
-  defgroup4:SetWidth(editframe.Width - 100)
+  defgroup4:SetFullWidth(true)
 
   local partydropdown = AceGUI:Create("Dropdown")
   partydropdown:SetLabel(L["Party"])
@@ -519,7 +543,8 @@ function GSE:GUIDrawMetadataEditor(container)
   defgroup4:AddChild(spacerlabel7)
   contentcontainer:AddChild(defgroup3)
   contentcontainer:AddChild(defgroup4)
-  container:AddChild(scrollcontainer)
+  contentcontainer:SetScroll(0)
+  container:AddChild(contentcontainer)
 end
 
 function GSE:GUIDrawMacroEditor(container, version)
@@ -536,18 +561,18 @@ function GSE:GUIDrawMacroEditor(container, version)
 
   editframe.Sequence.MacroVersions[version] = GSE.TranslateSequence(editframe.Sequence.MacroVersions[version], "From Editor")
 
+  local contentWidth = (container.content and container.content:GetWidth()) or editframe.Width or 700
+  local contentHeight = (container.content and container.content:GetHeight()) or (editframe.Height - 57) or 300
+  local availableHeight = math.max(100, contentHeight - 10)
+  local groupWidth = math.max(200, contentWidth - 120)
+
   local layoutcontainer = AceGUI:Create("SimpleGroup")
   layoutcontainer:SetFullWidth(true)
-  -- Use same height calculation as scrollcontainer to ensure consistency
-  local availableHeight = math.max(100, editframe.Height - 280) -- Ensure minimum height
   layoutcontainer:SetHeight(availableHeight)
   layoutcontainer:SetLayout("Flow") -- important!
 
   local scrollcontainer = AceGUI:Create("SimpleGroup") -- "InlineGroup" is also good
-  --scrollcontainer:SetFullWidth(true)
-  --scrollcontainer:SetFullHeight(true) -- probably?
-  scrollcontainer:SetWidth(editframe.Width - 200)
-  -- Use the same availableHeight as layoutcontainer
+  scrollcontainer:SetWidth(groupWidth)
   scrollcontainer:SetHeight(availableHeight)
   scrollcontainer:SetLayout("Fill") -- important!
 
@@ -558,12 +583,12 @@ function GSE:GUIDrawMacroEditor(container, version)
 
   local linegroup1 = AceGUI:Create("SimpleGroup")
   linegroup1:SetLayout("Flow")
-  linegroup1:SetWidth(editframe.Width - 100)
+  linegroup1:SetFullWidth(true)
   linegroup1:SetAutoAdjustHeight(false)
 
   local stepdropdown = AceGUI:Create("Dropdown")
   stepdropdown:SetLabel(L["Step Function"])
-  stepdropdown:SetWidth((editframe.Width - 210) * 0.48)
+  stepdropdown:SetWidth(groupWidth * 0.48)
   stepdropdown:SetList({
     ["Sequential"] = L["Sequential (1 2 3 4)"],
     ["Priority"] = L["Priority List (1 12 123 1234)"],
@@ -612,14 +637,14 @@ function GSE:GUIDrawMacroEditor(container, version)
   contentcontainer:AddChild(linegroup1)
   local linegroup2 = AceGUI:Create("SimpleGroup")
   linegroup2:SetLayout("Flow")
-  linegroup2:SetWidth(editframe.Width - 100)
+  linegroup2:SetFullWidth(true)
   linegroup2:SetAutoAdjustHeight(false)
 
   local KeyPressbox = AceGUI:Create("MultiLineEditBox")
   KeyPressbox:SetLabel(L["KeyPress"])
   KeyPressbox:SetNumLines(2)
   KeyPressbox:DisableButton(true)
-  KeyPressbox:SetWidth((editframe.Width - 210) * 0.48)
+  KeyPressbox:SetWidth(groupWidth * 0.48)
   KeyPressbox.editBox:SetScript( "OnLeave",  function() GSE.GUIParseText(KeyPressbox) end)
   if not GSE.isEmpty(editframe.Sequence.MacroVersions[version].KeyPress) then
     KeyPressbox:SetText(table.concat(editframe.Sequence.MacroVersions[version].KeyPress, "\n"))
@@ -637,7 +662,7 @@ function GSE:GUIDrawMacroEditor(container, version)
   PreMacro:SetLabel(L["PreMacro"])
   PreMacro:SetNumLines(2)
   PreMacro:DisableButton(true)
-  PreMacro:SetWidth((editframe.Width - 210) * 0.48)
+  PreMacro:SetWidth(groupWidth * 0.48)
   PreMacro.editBox:SetScript( "OnLeave",  function() GSE.GUIParseText(PreMacro) end)
   if not GSE.isEmpty(editframe.Sequence.MacroVersions[version].PreMacro) then
     PreMacro:SetText(table.concat(editframe.Sequence.MacroVersions[version].PreMacro, "\n"))
@@ -671,14 +696,14 @@ function GSE:GUIDrawMacroEditor(container, version)
 
   local linegroup3 = AceGUI:Create("SimpleGroup")
   linegroup3:SetLayout("Flow")
-  linegroup3:SetWidth(editframe.Width - 100)
+  linegroup3:SetFullWidth(true)
   linegroup3:SetAutoAdjustHeight(false)
 
   local KeyReleasebox = AceGUI:Create("MultiLineEditBox")
   KeyReleasebox:SetLabel(L["KeyRelease"])
   KeyReleasebox:SetNumLines(2)
   KeyReleasebox:DisableButton(true)
-  KeyReleasebox:SetWidth((editframe.Width - 210) * 0.48)
+  KeyReleasebox:SetWidth(groupWidth * 0.48)
   KeyReleasebox.editBox:SetScript( "OnLeave",  function() GSE.GUIParseText(KeyPressbox) end)
   if not GSE.isEmpty(editframe.Sequence.MacroVersions[version].KeyRelease) then
     KeyReleasebox:SetText(table.concat(editframe.Sequence.MacroVersions[version].KeyRelease, "\n"))
@@ -696,7 +721,7 @@ function GSE:GUIDrawMacroEditor(container, version)
   PostMacro:SetLabel(L["PostMacro"])
   PostMacro:SetNumLines(2)
   PostMacro:DisableButton(true)
-  PostMacro:SetWidth((editframe.Width - 210) * 0.48)
+  PostMacro:SetWidth(groupWidth * 0.48)
   PostMacro.editBox:SetScript( "OnLeave",  function() GSE.GUIParseText(PostMacro) end)
   linegroup3:AddChild(PostMacro)
   if not GSE.isEmpty(editframe.Sequence.MacroVersions[version].PostMacro) then
@@ -706,6 +731,7 @@ function GSE:GUIDrawMacroEditor(container, version)
     editframe.Sequence.MacroVersions[version].PostMacro = GSE.SplitMeIntolines(value)
   end)
   contentcontainer:AddChild(linegroup3)
+  contentcontainer:SetScroll(0)
 
   layoutcontainer:AddChild(scrollcontainer)
 

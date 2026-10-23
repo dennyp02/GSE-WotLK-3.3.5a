@@ -88,11 +88,16 @@ function GSE.GUILoadEditor(key, incomingframe, recordedstring)
   GSE.GUIEditFrame.Heroic = sequence.Heroic or sequence.Default
   GSE.GUIEditFrame.Party = sequence.Party or sequence.Default
   GSE.GUIEditorPerformLayout(GSE.GUIEditFrame)
-  GSE.GUIEditFrame.ContentContainer:SelectTab("config")
+  GSE.GUIEditFrame.SelectedTab = "config"
   incomingframe:Hide()
   if not InCombatLockdown() then
 	myUpdateFix()
 	GSE.GUIEditFrame:Show()
+	GSE.GUIEditFrame.ContentContainer:SelectTab("config")
+	if GSE.GUIEditorRefreshTimer then
+	  GSE:CancelTimer(GSE.GUIEditorRefreshTimer)
+	  GSE.GUIEditorRefreshTimer = nil
+	end
   end
 
 end

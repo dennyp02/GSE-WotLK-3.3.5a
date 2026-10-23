@@ -92,7 +92,12 @@ viewframe.frame:SetScript("OnSizeChanged", function ()
     viewframe.frame:ClearAllPoints()
     viewframe.frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", newPoint.x, newPoint.y)
   end
-  
+
+  if Width > 0 and Height > 0 then
+    viewframe:OnWidthSet(Width)
+    viewframe:OnHeightSet(Height)
+  end
+
   viewframe:DoLayout()
 end)
 
