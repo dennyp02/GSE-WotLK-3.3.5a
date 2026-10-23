@@ -19,6 +19,7 @@
 - Renaming a sequence in the editor now renames the existing sequence and its macro stub instead of creating a duplicate.
 - The editor now blocks saving/renaming to a name that already exists as a sequence or macro, shows the reason in the status bar, and disables Save.
 - The Viewer action previously labelled `Create Icon` / `Delete Icon` is now `Create Macro` / `Delete Macro`, and it no longer errors when no sequence is selected.
+- Duplicate-name validation now checks every class (case-insensitive) and also guards the editor's New-tab auto-save, so a new sequence can no longer be created over an existing name.
 - Requires in-game verification with ElvUI enabled and disabled.
 
 ## [2.6.55](https://github.com/TimothyLuke/GnomeSequencer-Enhanced/tree/2.6.55) (2021-06-09)

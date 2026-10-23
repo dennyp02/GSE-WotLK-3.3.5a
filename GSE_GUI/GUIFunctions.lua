@@ -212,9 +212,20 @@ function GSE.GetSequenceNameConflict(classid, newName, originalName)
   if originalName and newName == originalName then
     return nil
   end
-  local existing = GSELibrary[classid] and GSELibrary[classid][newName]
-  if type(existing) == "table" and type(existing.MacroVersions) == "table" then
-    return L["A sequence with that name already exists."]
+  local originalClassid = tonumber(classid)
+  local lowerName = string.lower(newName)
+  for cid, library in pairs(GSELibrary) do
+    if type(library) == "table" then
+      for name, sequence in pairs(library) do
+        if type(name) == "string"
+          and type(sequence) == "table"
+          and type(sequence.MacroVersions) == "table"
+          and string.lower(name) == lowerName
+          and not (originalName and originalClassid and cid == originalClassid and name == originalName) then
+          return L["A sequence with that name already exists."]
+        end
+      end
+    end
   end
   local macroIndex = GetMacroIndexByName(newName)
   if macroIndex and macroIndex ~= 0 then

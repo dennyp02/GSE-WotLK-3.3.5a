@@ -799,9 +799,13 @@ function GSE.GUISelectEditorTab(container, event, group)
     GSE:GUIDrawMetadataEditor(container)
   elseif group == "new" then
 	  if(GSE.isNewFirstTimeCreated) then
-		GSE.GUIUpdateSequenceDefinition(editframe.ClassID, editframe.SequenceName, editframe.Sequence, editframe.OriginalSequenceName)
-		editframe.OriginalSequenceName = editframe.SequenceName
-		editframe.save = true
+		local sequenceName = GSE.NormalizeSequenceName(editframe.SequenceName)
+		if GSE.ValidateEditorSequenceName() then
+			GSE.GUIUpdateSequenceDefinition(editframe.ClassID, sequenceName, editframe.Sequence, editframe.OriginalSequenceName)
+			editframe.SequenceName = sequenceName
+			editframe.OriginalSequenceName = sequenceName
+			editframe.save = true
+		end
 	  end
     -- Copy the Default to a new version
     table.insert(editframe.Sequence.MacroVersions, GSE.CloneMacroVersion(editframe.Sequence.MacroVersions[editframe.Sequence.Default]))
