@@ -1,5 +1,5 @@
 local Type = "SelectablePanel"
-local Version = 3
+local Version = 4
 
 local AceGUI = LibStub and LibStub("GSE-AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
@@ -125,9 +125,15 @@ end
 
 local function SetSelectedColor(self, r, g, b)
 	self.selectedR, self.selectedG, self.selectedB = r or 1, g or 0.82, b or 0
+	local selected = self.Clicked
 	self.border:SetVertexColor(self.selectedR, self.selectedG, self.selectedB, 1)
+	self.border:SetAlpha(selected and 1 or 0)
 	if self.selectedBackground then
 		self.selectedBackground:SetVertexColor(self.selectedR, self.selectedG, self.selectedB, 1)
+		self.selectedBackground:SetAlpha(selected and 0.18 or 0)
+	end
+	if self.frame and self.frame.SetBackdropBorderColor then
+		self.frame:SetBackdropBorderColor(self.selectedR, self.selectedG, self.selectedB, selected and 0.65 or 0)
 	end
 end
 
