@@ -22,14 +22,20 @@ Rules the agent MUST follow. The user has explicitly stated these.
 - **Assume the addon must work identically with and without ElvUI.** Never assume a behavior or fix applies only to one configuration unless the user explicitly tells you so.
 - When the user reports a bug, assume it occurs in BOTH configurations unless they say otherwise.
 
-## Use the vision agent for UI work
+## Screenshots / vision
 
-- For any UI/layout/sizing issue, read the actual in-game screenshots with the vision subagent (`opencode-go/deepseek-v4.1-flash`, launched via `task` with `subagent_type= "general"`). Do not guess about visual rendering from code alone.
-- Verify UI fixes with the vision agent after implementing, before reporting done.
+- The main agent is vision-capable. Read screenshots directly instead of delegating to a vision subagent.
+- Do not assume visual rendering from code alone when a screenshot is available.
+- Verify UI fixes against the actual screenshots after implementing, before reporting done.
 
 ## Use available reference tools
 
 - The Milkyway Codex MCP is available for WoW 3.3.5a API reference (functions, events, widgets, CVars, data types, combat log, secure templates). Use it to verify correct API usage and widget structure instead of guessing.
+
+## Tool timeouts
+
+- For shell/bash commands, use `timeout: 30000` (30 seconds) by default — a quarter of the 120000 ms tool default — so stuck commands fail fast. Only raise it for commands that legitimately need longer (builds, downloads, large scans).
+- Provider request timeouts are configured in `~/.config/opencode/opencode.json` (`provider.opencode-go.options.headerTimeout` / `chunkTimeout`, currently 75000 ms).
 
 ## Changelog hygiene — log only real changes
 
