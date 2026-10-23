@@ -19,8 +19,8 @@ The existing `GSE/CHANGELOG.md` stays as-is; this file is a staging list for the
 - **Vendored complete AceGUI 3.0 set**: consistent core 42 + all 22 standard widgets, with **GSE-prefixed frame names** so they cannot collide with the real AceGUI instance's frames (the cause of broken dropdowns/tabs).
 - **Editor/Viewer content sizing**: frame content area is synchronized on show/resize; tab content is rebuilt safely (debounced) so fields fit.
 - **Resize handling**: native AceGUI sizing with a single relayout function (no custom `OnSizeChanged`, no fixed pixel math, no tab rebuild on resize); tabs, toolbar, and the bottom button row stay laid out while resizing.
-- **Minimap button**: LibDBIcon button using the GSE icon (converted to TGA for 3.3.5a), with a `Show Minimap Button` option; position/hide persist in `GSEOptions.minimap`.
-- **Minimap right-click menu**: right-click opens a menu for the `/gse` maintenance/tools commands, sequence export, samples, options, help and hiding the button; the tooltip is compact and no longer errors.
+- **Minimap button**: LibDBIcon button using the GSE icon (converted to TGA for 3.3.5a), with a `Show Minimap Button` option; position/hide persist in `GSEOptions.minimap`. Left-click opens `/gse`; right-click opens the command menu; no hover tooltip.
+- **Minimap right-click menu**: right-click opens a menu for the `/gse` maintenance/tools commands, sequence export, samples, options, help and hiding the button.
 - **`/gse showspec`**: fixed the undefined class ID in its output.
 - **TabGroup**: renders as connected horizontal top tabs.
 - **Dropdowns**: full body + working arrow (fixed by the consistent widget set + namespacing).

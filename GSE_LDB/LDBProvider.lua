@@ -1,14 +1,12 @@
 local GSE = GSE
 
-local Statics = GSE.Static
 local L = GSE.L
 
 local ldb = LibStub:GetLibrary("LibDataBroker-1.1")
 local dataobj = ldb:NewDataObject(L["GSE"] .." ".. L["GnomeSequencer-Enhanced"], {
   type = "data source",
   text = "GSE",
-  icon = "Interface\\AddOns\\GSE\\Media\\GSE_Icon",
-  OnLeave = dataObject_OnLeave
+  icon = "Interface\\AddOns\\GSE\\Media\\GSE_Icon"
 })
 
 -- LibDBIcon minimap button (position/hide persisted in GSEOptions.minimap)
@@ -17,89 +15,6 @@ if LibDBIcon then
   GSEOptions.minimap = GSEOptions.minimap or { hide = false }
   if GSEOptions.minimap.hide == nil then GSEOptions.minimap.hide = false end
   LibDBIcon:Register("GSE", dataobj, GSEOptions.minimap)
-end
-local LibQTip = LibStub('LibQTip-1.0')
-local LibSharedMedia = LibStub('LibSharedMedia-3.0')
-
-local baseFont = CreateFont("baseFont")
-
--- CHeck for ElvUI
-if GSE.isEmpty(ElvUI) then
-  baseFont:SetFont(GameTooltipText:GetFont(), 10)
-elseif LibSharedMedia:IsValid('font', ElvUI[1].db.general.font) then
-  baseFont:SetFont(LibSharedMedia:Fetch('font', ElvUI[1].db.general.font), 10)
-else
-  baseFont:SetFont(GameTooltipText:GetFont(), 10)
-end
-
-function dataobj:OnEnter()
-  -- Acquire a tooltip with 3 columns, respectively aligned to left, center and right
-  --local tooltip = LibQTip:Acquire("GSSE", 3, "LEFT", "CENTER", "RIGHT")
-  local tooltip = LibQTip:Acquire("GSSE", 3, "LEFT", "CENTER", "RIGHT")
-  self.tooltip = tooltip
-
-  tooltip:Clear()
-  tooltip:SetFont(baseFont)
-  --tooltip:SetHeaderFont(red17font)
-  local y,x = tooltip:AddLine(nil, L["GSE: Left Click to open the Sequence Editor"], nil)
-  y,x = tooltip:AddLine(nil, L["GSE: Middle Click to open the Transmission Interface"], nil)
-  y,x = tooltip:AddLine(nil, L["GSE: Right Click to open the GSE menu"], nil)
-
-  -- If in party add other users and their versions
-  if not GSE.isEmpty(GSE.UnsavedOptions["PartyUsers"]) and GSEOptions.showGSEUsers then
-    tooltip:AddSeparator()
-    y,x = tooltip:AddLine(nil, L["GSE Users"], nil)
-    for k,v in pairs(GSE.UnsavedOptions["PartyUsers"]) do
-      tooltip:AddLine(k, nil, v)
-    end
-  end
-
-
-  -- Show GSE OOCQueue Information
-  if GSEOptions.showGSEoocqueue then
-    tooltip:AddSeparator()
-    y,x = tooltip:AddLine(nil, string.format(L["The GSE Out of Combat queue is %s"], GSE.CheckOOCQueueStatus()), nil)
-    local OOCStatusline = y
-    tooltip:SetLineScript(y, "OnMouseDown", function(obj, button)
-      GSE.ToggleOOCQueue()
-      tooltip:SetCell(OOCStatusline, 2, string.format(L["The GSE Out of Combat queue is %s"], GSE.CheckOOCQueueStatus()),"CENTER", 1)
-    end)
-    tooltip:AddSeparator()
-    y,x = tooltip:AddLine()
-    if table.getn(GSE.OOCQueue) > 0 then
-      tooltip:SetCell(y, 2, string.format(L["There are %i events in out of combat queue"], table.getn(GSE.OOCQueue)),"CENTER", 1)
-      for k,v in ipairs(GSE.OOCQueue) do
-        y,x = tooltip:AddLine()
-        GSE.prepareTooltipOOCLine(tooltip, v, y, k)
-      end
-    else
-      -- No Items
-      tooltip:SetCell(y, 2, string.format(L["There are no events in out of combat queue"]),"CENTER", 1)
-    end
-  end
-
-  tooltip:AddSeparator()
-  y,x = tooltip:AddLine(nil, string.format(L["GSE Version: %s"], GSE.formatModVersion(GSE.VersionString)), nil)
-  -- Use smart anchoring code to anchor the tooltip to our frame
-  tooltip:SmartAnchorTo(self)
-
-
-  -- Show it, et voil� !
-  tooltip:Show()
-end
-
-local function dataObject_OnLeave(self)
-  -- Dont close the tooltip if mouseover
-  if not MouseIsOver(self.tooltip) then
-    -- Release the tooltip
-    LibQTip:Release(self.tooltip)
-    self.tooltip = nil
-  end
-end
-
-
-function dataobj:OnLeave()
-  dataObject_OnLeave(self)
 end
 
 local minimapMenuFrame = CreateFrame("Frame", "GSE_MinimapMenu", UIParent, "UIDropDownMenuTemplate")
