@@ -432,3 +432,7 @@ L["Unable to process content.  Fix table and try again."] = true
 L["Updated Macro"] = true
 L["Version "] = true
 L["with no body"] = true
+
+-- Minimap button
+L["Show Minimap Button"] = true
+L["Show the GSE minimap button."] = true

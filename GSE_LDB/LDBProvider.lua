@@ -7,8 +7,17 @@ local ldb = LibStub:GetLibrary("LibDataBroker-1.1")
 local dataobj = ldb:NewDataObject(L["GSE"] .." ".. L["GnomeSequencer-Enhanced"], {
   type = "data source",
   text = "GSE",
+  icon = "Interface\\AddOns\\GSE\\Media\\GSE_Icon",
   OnLeave = dataObject_OnLeave
 })
+
+-- LibDBIcon minimap button (position/hide persisted in GSEOptions.minimap)
+local LibDBIcon = LibStub("LibDBIcon-1.0", true)
+if LibDBIcon then
+  GSEOptions.minimap = GSEOptions.minimap or { hide = false }
+  if GSEOptions.minimap.hide == nil then GSEOptions.minimap.hide = false end
+  LibDBIcon:Register("GSE", dataobj, GSEOptions.minimap)
+end
 local LibQTip = LibStub('LibQTip-1.0')
 local LibSharedMedia = LibStub('LibSharedMedia-3.0')
 
