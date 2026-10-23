@@ -108,6 +108,11 @@ This revival was done by cerberus after Gummed's WotLK backport was abandoned. T
 
 ## Version History
 
+- **2.2.06-wotlk** - ElvUI compatibility fix
+  - Isolated GSE's AceGUI so ElvUI and other addons cannot override the sequence editor's widgets
+  - Moved the out-of-combat save queue off the shared AceTimer library
+  - Added missing enUS localization strings
+
 - **2.2.04-wotlk** (January 2025) - Complete revival for 3.3.5a by cerberus
   - Fixed all critical bugs and crashes
   - Added sample macros for all classes

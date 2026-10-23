@@ -9,6 +9,17 @@ local Statics = GSE.Static
 
 local GCD, GCD_Update_Timer
 
+local oocTimerFrame = CreateFrame("Frame", "GSEOOCTimerFrame", UIParent)
+local oocTimerElapsed = 0
+oocTimerFrame:Hide()
+oocTimerFrame:SetScript("OnUpdate", function(self, elapsed)
+  oocTimerElapsed = oocTimerElapsed + elapsed
+  if oocTimerElapsed >= 1 then
+    oocTimerElapsed = 0
+    GSE:ProcessOOCQueue()
+  end
+end)
+
 
 --- This function is used to debug a sequence and trace its execution.
 function GSE.TraceSequence(button, step, task)
@@ -378,12 +389,14 @@ end
 
 --- Start the OOC Queue Timer
 function GSE.StartOOCTimer()
-  GSE.OOCTimer = GSE:ScheduleRepeatingTimer("ProcessOOCQueue", 1)
+  oocTimerElapsed = 0
+  GSE.OOCTimer = oocTimerFrame
+  oocTimerFrame:Show()
 end
 
 --- Stop the OOC Queue Timer
 function GSE.StopOOCTimer()
-  GSE:CancelTimer(GSE.OOCTimer)
+  oocTimerFrame:Hide()
   GSE.OOCTimer = nil
 end
 
