@@ -399,6 +399,7 @@ L["Macro found by the name %sPVP%s. Rename this macro to a different name to be 
 -- GSE 2.2.06-wotlk - missing enUS strings
 L[" deleted"] = true
 L["/gse loadsamples|r will load documented sample macros for your current class."] = true
+L["/gse repair|r will scan saved sequences and remove corrupt entries."] = true
 L["|r to load sample macros for your class."] = true
 L["|r. As a result this macro was not created.  Please delete some macros and reenter "] = true
 L["Active version set to "] = true

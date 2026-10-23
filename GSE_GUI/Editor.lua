@@ -241,8 +241,13 @@ function GSE.GUIEditorPerformLayout(frame)
   savebutton:SetWidth(150)
   savebutton:SetCallback("OnClick", function()
     editframe.Sequence.ManualIntervention = true
-    nameeditbox:SetText(nameeditbox:GetText())
-    editframe.SequenceName = nameeditbox:GetText()
+    local sequenceName = GSE.NormalizeSequenceName(nameeditbox:GetText())
+    if GSE.isEmpty(sequenceName) then
+      GSE.Print(L["No Sequence Name"], "GSE")
+      return
+    end
+    nameeditbox:SetText(sequenceName)
+    editframe.SequenceName = sequenceName
     GSE.GUIUpdateSequenceDefinition(editframe.ClassID, editframe.SequenceName, editframe.Sequence)
     editframe.save = true
   end)

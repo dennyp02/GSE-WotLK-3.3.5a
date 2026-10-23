@@ -147,6 +147,10 @@ function GSE:PLAYER_ENTERING_WORLD()
 end
 
 function GSE:ADDON_LOADED(event, addon)
+  if type(GSELibrary) ~= "table" then
+    GSELibrary = {}
+  end
+  GSE.SanitizeSequenceLibrary()
   if GSE.isEmpty(GSELibrary) then
     GSELibrary = {}
   end
@@ -160,17 +164,21 @@ function GSE:ADDON_LOADED(event, addon)
   local counter = 0
 
   for k,v in pairs(GSELibrary[GSE.GetCurrentClassID()]) do
-    counter = counter + 1
-    for i,j in ipairs(v.MacroVersions) do
-      GSELibrary[GSE.GetCurrentClassID()][k].MacroVersions[tonumber(i)] = GSE.UnEscapeSequence(j)
+    if type(v) == "table" and type(v.MacroVersions) == "table" then
+      counter = counter + 1
+      for i,j in ipairs(v.MacroVersions) do
+        GSELibrary[GSE.GetCurrentClassID()][k].MacroVersions[tonumber(i)] = GSE.UnEscapeSequence(j)
+      end
     end
   end
   if not GSE.isEmpty(GSELibrary[0]) then
 
     for k,v in pairs(GSELibrary[0]) do
-      counter = counter + 1
-      for i,j in ipairs(v.MacroVersions) do
-        GSELibrary[0][k].MacroVersions[tonumber(i)] = GSE.UnEscapeSequence(j)
+      if type(v) == "table" and type(v.MacroVersions) == "table" then
+        counter = counter + 1
+        for i,j in ipairs(v.MacroVersions) do
+          GSELibrary[0][k].MacroVersions[tonumber(i)] = GSE.UnEscapeSequence(j)
+        end
       end
     end
   end
@@ -316,6 +324,7 @@ local function PrintGnomeHelp()
   GSE.Print(L["The command "] .. GSEOptions.CommandColour .. L["/gs showspec|r will show your current Specialisation and the SPECID needed to tag any existing macros."], GNOME)
   GSE.Print(L["The command "] .. GSEOptions.CommandColour .. L["/gs cleanorphans|r will loop through your macros and delete any left over GS-E macros that no longer have a sequence to match them."], GNOME)
   GSE.Print(L["The command "] .. GSEOptions.CommandColour .. L["/gs checkmacrosforerrors|r will loop through your macros and check for corrupt macro versions.  This will then show how to correct these issues."], GNOME)
+  GSE.Print(L["The command "] .. GSEOptions.CommandColour .. L["/gse repair|r will scan saved sequences and remove corrupt entries."], GNOME)
   GSE.Print(L["The command "] .. GSEOptions.CommandColour .. L["/gse loadsamples|r will load documented sample macros for your current class."], GNOME)
 end
 
@@ -339,6 +348,12 @@ function GSE:GSSlash(input)
   elseif string.lower(input) == "forceclean" then
     GSE.CleanOrphanSequences()
     GSE.CleanMacroLibrary(true)
+  elseif string.lower(input) == "repair" then
+    local removed = GSE.SanitizeSequenceLibrary()
+    if #removed == 0 then
+      GSE.Print("GSE: no invalid sequence entries found.", GNOME)
+    end
+    GSE.ReloadSequences()
   elseif string.lower(string.sub(string.lower(input),1,6)) == "export" then
     GSE.Print(GSE.ExportSequence(string.sub(string.lower(input),8)))
   elseif string.lower(input) == "showdebugoutput" then
@@ -424,21 +439,39 @@ function GSE:ProcessOOCQueue()
             GSE.PrintDebugMessage("Replace action missing classid or sequencename", "Events")
             return
           end
-          
-          if GSE.isEmpty(GSELibrary[v.classid]) then
+          if type(v.sequence) ~= "table" or type(v.sequence.MacroVersions) ~= "table" then
+            GSE.PrintDebugMessage("Replace action missing valid sequence data", "Events")
+            return
+          end
+
+          if type(GSELibrary[v.classid]) ~= "table" then
             GSELibrary[v.classid] = {}
           end
-          
-          if GSELibrary[v.classid][v.sequencename]==nil then
-            GSELibrary[v.classid][v.sequencename]=''
+
+          local originalName = v.sequencename
+          local sequenceName = GSE.NormalizeSequenceName(originalName)
+          if sequenceName ~= originalName then
+            local old = GSELibrary[v.classid][originalName]
+            if type(old) ~= "table" or type(old.MacroVersions) ~= "table" then
+              GSELibrary[v.classid][originalName] = nil
+            end
           end
-          if (GSE.isEmpty(GSELibrary[v.classid][v.sequencename])) then
-            GSE.OOCAddSequenceToCollection(v.sequencename, v.sequence, v.classid)
+
+          local existing = GSELibrary[v.classid][sequenceName]
+          if type(existing) ~= "table" or type(existing.MacroVersions) ~= "table" then
+            GSELibrary[v.classid][sequenceName] = nil
+            GSE.OOCAddSequenceToCollection(sequenceName, v.sequence, v.classid)
           else
-            GSELibrary[v.classid][v.sequencename] = v.sequence
+            GSELibrary[v.classid][sequenceName] = v.sequence
           end
-          if not GSE.isEmpty(v.sequence) and not GSE.isEmpty(v.sequence.MacroVersions) then
-            GSE.OOCUpdateSequence(v.sequencename, v.sequence.MacroVersions[GSE.GetActiveSequenceVersion(v.sequencename)])
+
+          local stored = GSELibrary[v.classid][sequenceName]
+          if type(stored) == "table" and type(stored.MacroVersions) == "table" then
+            local version = stored.Default or 1
+            local macroVersion = stored.MacroVersions[version] or stored.MacroVersions[1]
+            if macroVersion then
+              GSE.OOCUpdateSequence(sequenceName, macroVersion)
+            end
           end
         elseif v.action == "openviewer" then
           GSE.GUIShowViewer()

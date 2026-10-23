@@ -67,8 +67,14 @@ function GSE.GUILoadEditor(key, incomingframe, recordedstring)
     local elements = GSE.split(key, ",")
     classid = tonumber(elements[1])
     sequenceName = elements[2]
-	
-    sequence = GSE.CloneSequence(GSELibrary[classid][sequenceName], true)
+
+    local source = GSELibrary[classid] and GSELibrary[classid][sequenceName]
+    if type(source) ~= "table" or type(source.MacroVersions) ~= "table" then
+      GSE.Print("Unable to load sequence " .. tostring(sequenceName) .. ": invalid saved data.", "GSE")
+      return
+    end
+
+    sequence = GSE.CloneSequence(source, true)
 	GSE.isNewFirstTimeCreated=false
   end
   GSE.GUIEditFrame.SequenceName = sequenceName
@@ -92,51 +98,56 @@ function GSE.GUILoadEditor(key, incomingframe, recordedstring)
 end
 
 function GSE.getSequenceName()
-  
   local names1 = GSE.GetSequenceNames()
   local numberOfSeqs = 0
   local currentSpecID, specname, specicon = GSE.GetCurrentSpecID()
-  local newSeqNameTemp = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters("New"..specname))
-  local newSeqName = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters("New"..specname))
+  specname = specname or ""
+  local newSeqNameTemp = GSE.NormalizeSequenceName(GSE.LowerAndReplaceSpecialCharacters("New"..specname))
+  local newSeqName = GSE.NormalizeSequenceName(GSE.LowerAndReplaceSpecialCharacters("New"..specname))
   local newSeqNumber=numberOfSeqs+1
-  if not GSE.isEmpty(GSELibrary[0]) then
+  if type(GSELibrary[0]) == "table" then
     numberOfSeqs = 0
     for k,v in pairs(GSELibrary[0]) do
-      numberOfSeqs = numberOfSeqs + 1
-      for i,j in ipairs(v.MacroVersions) do
-        GSELibrary[0][k].MacroVersions[tonumber(i)] = GSE.UnEscapeSequence(j)
+      if type(v) == "table" and type(v.MacroVersions) == "table" then
+        numberOfSeqs = numberOfSeqs + 1
+        for i,j in ipairs(v.MacroVersions) do
+          GSELibrary[0][k].MacroVersions[tonumber(i)] = GSE.UnEscapeSequence(j)
+        end
       end
     end
   end
   if numberOfSeqs <= 0 then
-    if not GSE.isEmpty(GSELibrary[GSE.GetCurrentClassID()]) then
+    if type(GSELibrary[GSE.GetCurrentClassID()]) == "table" then
       for k,v in GSE.pairsByKeys(names1) do
-        numberOfSeqs = numberOfSeqs + 1 
+        numberOfSeqs = numberOfSeqs + 1
       end
     end
   end
   newSeqNumber=numberOfSeqs+1
-  newSeqNameTemp = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters("New"..specname..newSeqNumber..GetTime()))
-  newSeqNameTemp = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters(newSeqNameTemp))
+  newSeqNameTemp = GSE.NormalizeSequenceName(GSE.LowerAndReplaceSpecialCharacters("New"..specname..newSeqNumber..GetTime()))
+  newSeqNameTemp = GSE.NormalizeSequenceName(GSE.LowerAndReplaceSpecialCharacters(newSeqNameTemp))
   for k,v in GSE.pairsByKeys(names1) do
     local elements = GSE.split(k, ",")
     local classid = tonumber(elements[1])
     local sequencename = elements[2]
-	if newSeqNameTemp == sequencename then
-	  newSeqNumber=numberOfSeqs+1
-	  newSeqNameTemp = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters("New"..specname..newSeqNumber..GetTime()))
-	  newSeqNameTemp = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters(newSeqNameTemp))
-	end
+    if newSeqNameTemp == sequencename then
+      newSeqNumber=numberOfSeqs+1
+      newSeqNameTemp = GSE.NormalizeSequenceName(GSE.LowerAndReplaceSpecialCharacters("New"..specname..newSeqNumber..GetTime()))
+      newSeqNameTemp = GSE.NormalizeSequenceName(GSE.LowerAndReplaceSpecialCharacters(newSeqNameTemp))
+    end
   end
-  for name, sequence in pairs(GSELibrary[GSE.GetCurrentClassID()]) do
-    if newSeqNameTemp == name then
-	  newSeqNumber = numberOfSeqs+1
-	  newSeqNameTemp = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters("New"..specname..newSeqNumber..GetTime()))
-	  newSeqNameTemp = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters(newSeqNameTemp))
-	end
+  local currentClassSequences = GSELibrary[GSE.GetCurrentClassID()]
+  if type(currentClassSequences) == "table" then
+    for name, sequence in pairs(currentClassSequences) do
+      if newSeqNameTemp == name then
+        newSeqNumber = numberOfSeqs+1
+        newSeqNameTemp = GSE.NormalizeSequenceName(GSE.LowerAndReplaceSpecialCharacters("New"..specname..newSeqNumber..GetTime()))
+        newSeqNameTemp = GSE.NormalizeSequenceName(GSE.LowerAndReplaceSpecialCharacters(newSeqNameTemp))
+      end
+    end
   end
-  newSeqNameTemp = GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters(newSeqNameTemp))
-  newSeqName =  GSE.TrimWhiteSpace(GSE.LowerAndReplaceSpecialCharacters(newSeqNameTemp))
+  newSeqNameTemp = GSE.NormalizeSequenceName(GSE.LowerAndReplaceSpecialCharacters(newSeqNameTemp))
+  newSeqName = GSE.NormalizeSequenceName(GSE.LowerAndReplaceSpecialCharacters(newSeqNameTemp))
   return newSeqName
 end
 
@@ -161,6 +172,11 @@ end
 
 function GSE.GUIUpdateSequenceDefinition(classid, SequenceName, sequence)
 
+  if type(sequence) ~= "table" or type(sequence.MacroVersions) ~= "table" then
+    GSE.Print(L["Unable to process content.  Fix table and try again."], "GSE")
+    return
+  end
+  SequenceName = GSE.NormalizeSequenceName(SequenceName)
   -- Changes have been made so save them
   for k,v in ipairs(sequence.MacroVersions) do
     sequence.MacroVersions[k] = GSE.TranslateSequenceFromTo(v, GetLocale(), "enUS", SequenceName)
