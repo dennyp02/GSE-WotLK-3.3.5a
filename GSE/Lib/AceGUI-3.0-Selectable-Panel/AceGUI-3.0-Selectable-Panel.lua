@@ -1,5 +1,5 @@
 local Type = "SelectablePanel"
-local Version = 4
+local Version = 5
 
 local AceGUI = LibStub and LibStub("GSE-AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
@@ -52,12 +52,14 @@ local function OnAcquire(self)
 		self.frame:SetBackdropBorderColor(1, 1, 1, 0)
 	end
 	self.Clicked = false
+	self.ResizeContent = nil
 end
 
 local function OnRelease(self)
 	self.frame:ClearAllPoints()
 	self.frame:Hide()
 	self.Clicked = false
+	self.ResizeContent = nil
 end
 
 local function SelectablePanel_OnClick(self, button)
@@ -70,22 +72,25 @@ end
 
 local function LayoutFinished(self, width, height)
 	if self.noAutoHeight then return end
-	self:SetHeight((height or 0) + 12)
+	self:SetHeight((height or 0) + 20)
 end
 
 local function OnWidthSet(self, width)
 	local content = self.content
-	local contentwidth = width - 12
+	local contentwidth = width - 20
 	if contentwidth < 0 then
 		contentwidth = 0
 	end
 	content:SetWidth(contentwidth)
 	content.width = contentwidth
+	if self.ResizeContent then
+		self.ResizeContent(width)
+	end
 end
 
 local function OnHeightSet(self, height)
 	local content = self.content
-	local contentheight = height - 12
+	local contentheight = height - 20
 	if contentheight < 0 then
 		contentheight = 0
 	end
@@ -205,8 +210,8 @@ local function Constructor()
 	local content = CreateFrame("Frame",nil,frame)
 	self.content = content
 	content.obj = self
-	content:SetPoint("TOPLEFT",frame,"TOPLEFT",6,-6)
-	content:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",-6,6)
+	content:SetPoint("TOPLEFT",frame,"TOPLEFT",10,-10)
+	content:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",-10,10)
 
 
 	AceGUI:RegisterAsContainer(self)

@@ -137,14 +137,17 @@ function GSE.GUICreateSequencePanels(frame, container, key)
     PickupMacro(sequencename)
   end)
   icon:SetImage(GSE.GetMacroIcon(classid, sequencename))
-  icon:SetImageSize(36, 36)
-  icon:SetWidth(40)
+  icon:SetImageSize(40, 40)
+  icon:SetWidth(48)
   selpanel.Icon = icon
   header:AddChild(icon)
 
+  local initialContent = (selpanel.frame:GetWidth() or 300) - 20
+  local initialText = math.max(80, initialContent - 48)
+
   local textGroup = AceGUI:Create("SimpleGroup")
   textGroup:SetLayout("List")
-  textGroup:SetRelativeWidth(0.84)
+  textGroup:SetWidth(initialText)
   header:AddChild(textGroup)
 
   local nameLabel = AceGUI:Create("Label")
@@ -177,11 +180,35 @@ function GSE.GUICreateSequencePanels(frame, container, key)
     helpText = string.sub(helpText, 1, 167) .. "..."
   end
   local helpLabel = AceGUI:Create("Label")
-  helpLabel:SetFullWidth(true)
+  helpLabel:SetWidth(initialText)
   helpLabel:SetFontObject(GameFontNormalSmall)
   helpLabel.label:SetTextColor(0.78, 0.78, 0.78)
   helpLabel:SetText(helpText)
-  selpanel:AddChild(helpLabel)
+
+  local helpRow = AceGUI:Create("SimpleGroup")
+  helpRow:SetFullWidth(true)
+  helpRow:SetLayout("Flow")
+  local helpIndent = AceGUI:Create("Label")
+  helpIndent:SetText("")
+  helpIndent:SetWidth(48)
+  helpIndent:SetHeight(1)
+  helpRow:AddChild(helpIndent)
+  helpRow:AddChild(helpLabel)
+
+  local helpSpacer = AceGUI:Create("Label")
+  helpSpacer:SetText(" ")
+  helpSpacer:SetFontObject(GameFontNormalSmall)
+  helpSpacer:SetFullWidth(true)
+
+  selpanel.ResizeContent = function(width)
+    local contentWidth = math.max(0, (width or 0) - 20)
+    local textWidth = math.max(80, contentWidth - 48)
+    textGroup:SetWidth(textWidth)
+    helpLabel:SetWidth(textWidth)
+  end
+
+  selpanel:AddChild(helpSpacer)
+  selpanel:AddChild(helpRow)
 
   container:AddChild(selpanel)
 end
