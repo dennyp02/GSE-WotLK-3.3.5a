@@ -200,8 +200,10 @@ function GSE.GUIEditorPerformLayout(frame)
       return
     end
     nameeditbox:SetText(sequenceName)
+    local previousName = editframe.OriginalSequenceName
     editframe.SequenceName = sequenceName
-    GSE.GUIUpdateSequenceDefinition(editframe.ClassID, editframe.SequenceName, editframe.Sequence)
+    GSE.GUIUpdateSequenceDefinition(editframe.ClassID, editframe.SequenceName, editframe.Sequence, previousName)
+    editframe.OriginalSequenceName = sequenceName
     editframe.save = true
   end)
   editButtonGroup:AddChild(savebutton)
@@ -789,7 +791,8 @@ function GSE.GUISelectEditorTab(container, event, group)
     GSE:GUIDrawMetadataEditor(container)
   elseif group == "new" then
 	  if(GSE.isNewFirstTimeCreated) then
-		GSE.GUIUpdateSequenceDefinition(editframe.ClassID, editframe.SequenceName, editframe.Sequence)
+		GSE.GUIUpdateSequenceDefinition(editframe.ClassID, editframe.SequenceName, editframe.Sequence, editframe.OriginalSequenceName)
+		editframe.OriginalSequenceName = editframe.SequenceName
 		editframe.save = true
 	  end
     -- Copy the Default to a new version

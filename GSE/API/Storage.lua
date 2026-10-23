@@ -939,6 +939,33 @@ function GSE.DeleteMacroStub(sequenceName)
   end
 end
 
+--- Rename a GSE macro stub when its sequence is renamed.
+function GSE.RenameSequenceMacroStub(oldName, newName)
+  if GSE.isEmpty(oldName) or GSE.isEmpty(newName) or oldName == newName then
+    return
+  end
+  local oldIndex = GetMacroIndexByName(oldName)
+  if not oldIndex or oldIndex == 0 then
+    return
+  end
+  local _, oldIcon, oldBody = GetMacroInfo(oldIndex)
+  if not oldBody then
+    return
+  end
+  local trimmedOld = oldBody:gsub("[^%w ]", "")
+  local expectedOld = GSE.CreateMacroString(oldName):gsub("[^%w ]", "")
+  if string.lower(trimmedOld) ~= string.lower(expectedOld) then
+    return
+  end
+  local newIndex = GetMacroIndexByName(newName)
+  if newIndex and newIndex ~= 0 and newIndex ~= oldIndex then
+    GSE.Print(string.format(L["A macro named %s already exists. The old macro was removed."], newName), GNOME)
+    DeleteMacro(oldIndex)
+    return
+  end
+  EditMacro(oldIndex, newName, oldIcon, GSE.CreateMacroString(newName))
+end
+
 
 --- Not Used
 function GSE.GetDefaultIcon()

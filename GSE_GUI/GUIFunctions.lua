@@ -78,6 +78,7 @@ function GSE.GUILoadEditor(key, incomingframe, recordedstring)
 	GSE.isNewFirstTimeCreated=false
   end
   GSE.GUIEditFrame.SequenceName = sequenceName
+  GSE.GUIEditFrame.OriginalSequenceName = (not GSE.isEmpty(key)) and sequenceName or nil
   GSE.GUIEditFrame.Sequence = sequence
   GSE.GUIEditFrame.ClassID = classid
   GSE.GUIEditFrame.Default = sequence.Default
@@ -172,7 +173,7 @@ function GSE.GUIToggleClasses(buttonname)
 end
 
 
-function GSE.GUIUpdateSequenceDefinition(classid, SequenceName, sequence)
+function GSE.GUIUpdateSequenceDefinition(classid, SequenceName, sequence, previousName)
 
   if type(sequence) ~= "table" or type(sequence.MacroVersions) ~= "table" then
     GSE.Print(L["Unable to process content.  Fix table and try again."], "GSE")
@@ -193,6 +194,7 @@ function GSE.GUIUpdateSequenceDefinition(classid, SequenceName, sequence)
       local vals = {}
       vals.action = "Replace"
       vals.sequencename = SequenceName
+      vals.previousname = previousName
       vals.sequence = sequence
       vals.classid = classid
       table.insert(GSE.OOCQueue, vals)

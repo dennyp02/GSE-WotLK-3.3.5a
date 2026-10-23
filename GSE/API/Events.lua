@@ -472,6 +472,25 @@ function GSE:ProcessOOCQueue()
               GSE.OOCUpdateSequence(sequenceName, macroVersion)
             end
           end
+
+          if v.previousname and v.previousname ~= "" and v.previousname ~= sequenceName then
+            if GSE.RenameSequenceMacroStub then
+              pcall(GSE.RenameSequenceMacroStub, v.previousname, sequenceName)
+            end
+            if type(GSELibrary[v.classid]) == "table" then
+              GSELibrary[v.classid][v.previousname] = nil
+            end
+            if GSE.SequencesExec and GSE.SequencesExec[v.previousname] then
+              local oldButton = _G[v.previousname]
+              if oldButton then
+                oldButton:Hide()
+              end
+              GSE.SequencesExec[v.previousname] = nil
+            end
+            if GSE.UsedSequences then
+              GSE.UsedSequences[v.previousname] = nil
+            end
+          end
         elseif v.action == "openviewer" then
           GSE.GUIShowViewer()
         elseif v.action == "CheckMacroCreated" then

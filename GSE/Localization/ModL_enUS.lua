@@ -460,3 +460,4 @@ L["Search"] = true
 L["No sequences available."] = true
 L["No sequences match your search."] = true
 L["Global"] = true
+L["A macro named %s already exists. The old macro was removed."] = true

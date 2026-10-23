@@ -16,6 +16,7 @@
 - Minimap button: left-click opens `/gse`, right-click opens a menu covering the `/gse` maintenance/tools commands, sequence export, samples, options, help and hide. Removed the hover tooltip.
 - Fixed `/gse showspec` referencing an undefined class ID.
 - Redesigned the Sequence Viewer: compact auto-sized cards with class-coloured names and accents, grouped class headings, a live search filter, a cleaner auto-width toolbar and a subtle selection highlight.
+- Renaming a sequence in the editor now renames the existing sequence and its macro stub instead of creating a duplicate.
 - Requires in-game verification with ElvUI enabled and disabled.
 
 ## [2.6.55](https://github.com/TimothyLuke/GnomeSequencer-Enhanced/tree/2.6.55) (2021-06-09)
