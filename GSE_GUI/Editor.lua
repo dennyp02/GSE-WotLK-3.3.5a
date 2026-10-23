@@ -41,10 +41,6 @@ editframe.Height = fheight
 editframe:SetTitle(L["Sequence Editor"])
 --editframe:SetStatusText(L["Gnome Sequencer: Sequence Editor."])
 editframe:SetCallback("OnClose", function (self)
-  if GSE.GUIEditorRefreshTimer then
-    GSE:CancelTimer(GSE.GUIEditorRefreshTimer)
-    GSE.GUIEditorRefreshTimer = nil
-  end
   editframe:Hide();
   if editframe.save then
     local event = {}
@@ -61,78 +57,28 @@ local maxWidth = GetScreenWidth() - 40
 editframe.frame:SetMaxResize(maxWidth, maxHeight)
 -- Set minimum size to prevent content overflow
 editframe.frame:SetMinResize(600, 500)
+editframe.frame:SetClampedToScreen(true)
 
 -- Set initial size to a reasonable default
 -- Use 100% of screen height which should be constrained by system limits
 local defaultHeight = GetScreenHeight() * 1.0
 editframe:SetCallback("OnShow", function()
   editframe:SetHeight(defaultHeight)
-  if GSE.ScheduleEditorTabRefresh then
-    GSE.ScheduleEditorTabRefresh()
-  end
+  GSE.RelayoutEditor()
 end)
-editframe.frame:HookScript("OnSizeChanged", function ()
-  local left, bottom, width, height = editframe.frame:GetBoundsRect()
-  if not width or not height or width <= 0 or height <= 0 then return end
-  editframe.Left = left
-  editframe.Bottom = bottom
-  editframe.Width = width
-  editframe.Height = height
 
-  local screenHeight = GetScreenHeight()
-  local screenWidth = GetScreenWidth()
-  local maxHeight = screenHeight - 40  -- Leave some space at top/bottom
-  local maxWidth = screenWidth - 40    -- Leave some space at sides
-
-  local newHeight = height
-  local newWidth = width
-  local needsResize = false
-
-  if height > maxHeight then
-    newHeight = maxHeight
-    needsResize = true
-  end
-
-  if width > maxWidth then
-    newWidth = maxWidth
-    needsResize = true
-  end
-
-  if needsResize then
-    editframe.frame:SetHeight(newHeight)
-    editframe.frame:SetWidth(newWidth)
-  end
-
-  -- Get current position
-  local top = editframe.frame:GetTop()
-  local bottomPos = editframe.frame:GetBottom()
-  local leftPos = editframe.frame:GetLeft()
-  local right = editframe.frame:GetRight()
-
-  local needsMove = (top and top > screenHeight)
-    or (bottomPos and bottomPos < 0)
-    or (leftPos and leftPos < 0)
-    or (right and right > screenWidth)
-
-  -- Reposition if off screen
-  if needsMove then
-    local newPoint = {}
-    newPoint.x = math.min(math.max(leftPos or 20, 20), screenWidth - newWidth - 20)
-    newPoint.y = math.min(math.max(bottomPos or 20, 20), screenHeight - newHeight - 20)
-    editframe.frame:ClearAllPoints()
-    editframe.frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", newPoint.x, newPoint.y)
-  end
-
-  -- Update TabGroup height and layout
-  if editframe.updateTabGroupHeight then
-    editframe.updateTabGroupHeight()
-  end
-  editframe:DoLayout()
-
-  if GSE.ScheduleEditorTabRefresh then
-    GSE.ScheduleEditorTabRefresh()
-  end
-end)
+-- Keep the AceGUI content area and tab heights in sync via AceGUI's own
+-- size callbacks. No custom OnSizeChanged and no tab rebuild on resize.
+local origOnWidthSet = editframe.OnWidthSet
+editframe.OnWidthSet = function(self, width)
+  if origOnWidthSet then origOnWidthSet(self, width) end
+  if GSE.RelayoutEditor then GSE.RelayoutEditor() end
+end
+local origOnHeightSet = editframe.OnHeightSet
+editframe.OnHeightSet = function(self, height)
+  if origOnHeightSet then origOnHeightSet(self, height) end
+  if GSE.RelayoutEditor then GSE.RelayoutEditor() end
+end
 
 
 local specdropdownvalue = editframe.SpecID
@@ -158,21 +104,24 @@ function GSE.GUICreateEditorTabs()
   return tabl
 end
 
-function GSE.ScheduleEditorTabRefresh()
-  if GSE.GUIEditorRefreshTimer then
-    GSE:CancelTimer(GSE.GUIEditorRefreshTimer)
-  end
-  GSE.GUIEditorRefreshTimer = GSE:ScheduleTimer(function()
-    GSE.GUIEditorRefreshTimer = nil
-    local frame = GSE.GUIEditFrame
-    if frame and frame:IsShown() and frame.ContentContainer then
-      local group = frame.SelectedTab or "config"
-      if group ~= "new" then
-        GSE.GUISelectEditorTab(frame.ContentContainer, "Resize", group)
-        frame:DoLayout()
-      end
-    end
-  end, 0.15)
+function GSE.RelayoutEditor()
+  local frame = GSE.GUIEditFrame
+  if not frame or not frame.content or not frame.ContentContainer then return end
+  frame:DoLayout()
+  local contentHeight = frame.content:GetHeight() or 0
+  if contentHeight <= 0 then return end
+  local headerHeight = (frame.headerGroup and frame.headerGroup.frame and frame.headerGroup.frame:GetHeight()) or 80
+  local buttonHeight = (frame.editButtonGroup and frame.editButtonGroup.frame and frame.editButtonGroup.frame:GetHeight()) or 30
+  local tabHeight = math.max(200, contentHeight - headerHeight - buttonHeight - 12)
+  frame.ContentContainer:SetHeight(tabHeight)
+  frame:DoLayout()
+  local tabContentHeight = (frame.ContentContainer.content and frame.ContentContainer.content:GetHeight()) or (tabHeight - 40)
+  tabContentHeight = math.max(80, tabContentHeight - 8)
+  if frame.tabScroll then frame.tabScroll:SetHeight(tabContentHeight) end
+  if frame.tabLayout then frame.tabLayout:SetHeight(tabContentHeight) end
+  if frame.tabToolbar then frame.tabToolbar:SetHeight(tabContentHeight) end
+  if frame.tabLayout then frame.tabLayout:DoLayout() end
+  if frame.tabScroll then frame.tabScroll:DoLayout() end
 end
 
 function GSE.GUIEditorPerformLayout(frame)
@@ -208,9 +157,10 @@ function GSE.GUIEditorPerformLayout(frame)
   editframe.iconpicker = iconpicker
 
   frame:AddChild(headerGroup)
+  editframe.headerGroup = headerGroup
 
   local tabgrp =  AceGUI:Create("TabGroup")
-  tabgrp:SetLayout("Flow")
+  tabgrp:SetLayout("Fill")
   tabgrp:SetTabs(GSE.GUICreateEditorTabs())
   editframe.ContentContainer = tabgrp
 
@@ -219,18 +169,7 @@ function GSE.GUIEditorPerformLayout(frame)
     GSE.GUISelectEditorTab(container, event, group)
   end)
   tabgrp:SetFullWidth(true)
-  -- Don't use SetFullHeight(true) as it causes unbounded growth.
-  -- Calculate from the actual Frame content size and measured child heights.
-  local function updateTabGroupHeight()
-    local contentHeight = (editframe.content and editframe.content:GetHeight()) or editframe.Height or 500
-    local headerHeight = (headerGroup.frame and headerGroup.frame:GetHeight()) or 80
-    local buttonHeight = 30
-    tabgrp:SetHeight(math.max(220, contentHeight - headerHeight - buttonHeight - 20))
-  end
-  updateTabGroupHeight()
-  editframe.updateTabGroupHeight = updateTabGroupHeight
-
-  tabgrp:SelectTab("config")
+  tabgrp:SetHeight(300)
   frame:AddChild(tabgrp)
 
 
@@ -276,6 +215,8 @@ function GSE.GUIEditorPerformLayout(frame)
   editButtonGroup:AddChild(transbutton)
   editButtonGroup:AddChild(editOptionsbutton)
   frame:AddChild(editButtonGroup)
+  editframe.editButtonGroup = editButtonGroup
+  GSE.RelayoutEditor()
 
 end
 
@@ -294,11 +235,8 @@ function GSE:GUIDrawMetadataEditor(container)
   editframe.iconpicker:SetImage(GSE.GetMacroIcon(editframe.ClassID, editframe.SequenceName))
 
 
-  local contentHeight = (container.content and container.content:GetHeight()) or (editframe.Height - 57) or 300
-  local availableHeight = math.max(100, contentHeight - 10)
   local contentcontainer = AceGUI:Create("ScrollFrame")
   contentcontainer:SetFullWidth(true)
-  contentcontainer:SetHeight(availableHeight)
   contentcontainer:SetAutoAdjustHeight(false)
 
   local metasimplegroup = AceGUI:Create("SimpleGroup")
@@ -529,6 +467,7 @@ function GSE:GUIDrawMetadataEditor(container)
   contentcontainer:AddChild(defgroup3)
   contentcontainer:AddChild(defgroup4)
   contentcontainer:SetScroll(0)
+  editframe.tabScroll = contentcontainer
   container:AddChild(contentcontainer)
 end
 
@@ -546,20 +485,15 @@ function GSE:GUIDrawMacroEditor(container, version)
 
   editframe.Sequence.MacroVersions[version] = GSE.TranslateSequence(editframe.Sequence.MacroVersions[version], "From Editor")
 
-  local contentWidth = (container.content and container.content:GetWidth()) or editframe.Width or 700
-  local contentHeight = (container.content and container.content:GetHeight()) or (editframe.Height - 57) or 300
-  local availableHeight = math.max(100, contentHeight - 10)
-  local groupWidth = math.max(200, contentWidth - 120)
-
   local layoutcontainer = AceGUI:Create("SimpleGroup")
   layoutcontainer:SetFullWidth(true)
-  layoutcontainer:SetHeight(availableHeight)
-  layoutcontainer:SetLayout("Flow") -- important!
+  layoutcontainer:SetLayout("Flow")
+  editframe.tabLayout = layoutcontainer
 
   local scrollcontainer = AceGUI:Create("SimpleGroup") -- "InlineGroup" is also good
-  scrollcontainer:SetWidth(groupWidth)
-  scrollcontainer:SetHeight(availableHeight)
+  scrollcontainer:SetRelativeWidth(0.78)
   scrollcontainer:SetLayout("Fill") -- important!
+  editframe.tabScroll = scrollcontainer
 
   local contentcontainer = AceGUI:Create("ScrollFrame")
   -- Ensure the scroll frame doesn't grow beyond available space
@@ -573,7 +507,7 @@ function GSE:GUIDrawMacroEditor(container, version)
 
   local stepdropdown = AceGUI:Create("Dropdown")
   stepdropdown:SetLabel(L["Step Function"])
-  stepdropdown:SetWidth(groupWidth * 0.48)
+  stepdropdown:SetRelativeWidth(0.48)
   stepdropdown:SetList({
     ["Sequential"] = L["Sequential (1 2 3 4)"],
     ["Priority"] = L["Priority List (1 12 123 1234)"],
@@ -629,7 +563,7 @@ function GSE:GUIDrawMacroEditor(container, version)
   KeyPressbox:SetLabel(L["KeyPress"])
   KeyPressbox:SetNumLines(2)
   KeyPressbox:DisableButton(true)
-  KeyPressbox:SetWidth(groupWidth * 0.48)
+  KeyPressbox:SetRelativeWidth(0.48)
   KeyPressbox.editBox:SetScript( "OnLeave",  function() GSE.GUIParseText(KeyPressbox) end)
   if not GSE.isEmpty(editframe.Sequence.MacroVersions[version].KeyPress) then
     KeyPressbox:SetText(table.concat(editframe.Sequence.MacroVersions[version].KeyPress, "\n"))
@@ -647,7 +581,7 @@ function GSE:GUIDrawMacroEditor(container, version)
   PreMacro:SetLabel(L["PreMacro"])
   PreMacro:SetNumLines(2)
   PreMacro:DisableButton(true)
-  PreMacro:SetWidth(groupWidth * 0.48)
+  PreMacro:SetRelativeWidth(0.48)
   PreMacro.editBox:SetScript( "OnLeave",  function() GSE.GUIParseText(PreMacro) end)
   if not GSE.isEmpty(editframe.Sequence.MacroVersions[version].PreMacro) then
     PreMacro:SetText(table.concat(editframe.Sequence.MacroVersions[version].PreMacro, "\n"))
@@ -688,7 +622,7 @@ function GSE:GUIDrawMacroEditor(container, version)
   KeyReleasebox:SetLabel(L["KeyRelease"])
   KeyReleasebox:SetNumLines(2)
   KeyReleasebox:DisableButton(true)
-  KeyReleasebox:SetWidth(groupWidth * 0.48)
+  KeyReleasebox:SetRelativeWidth(0.48)
   KeyReleasebox.editBox:SetScript( "OnLeave",  function() GSE.GUIParseText(KeyPressbox) end)
   if not GSE.isEmpty(editframe.Sequence.MacroVersions[version].KeyRelease) then
     KeyReleasebox:SetText(table.concat(editframe.Sequence.MacroVersions[version].KeyRelease, "\n"))
@@ -706,7 +640,7 @@ function GSE:GUIDrawMacroEditor(container, version)
   PostMacro:SetLabel(L["PostMacro"])
   PostMacro:SetNumLines(2)
   PostMacro:DisableButton(true)
-  PostMacro:SetWidth(groupWidth * 0.48)
+  PostMacro:SetRelativeWidth(0.48)
   PostMacro.editBox:SetScript( "OnLeave",  function() GSE.GUIParseText(PostMacro) end)
   linegroup3:AddChild(PostMacro)
   if not GSE.isEmpty(editframe.Sequence.MacroVersions[version].PostMacro) then
@@ -721,8 +655,8 @@ function GSE:GUIDrawMacroEditor(container, version)
   layoutcontainer:AddChild(scrollcontainer)
 
   local toolbarcontainer = AceGUI:Create("SimpleGroup") -- "InlineGroup" is also good
-  toolbarcontainer:SetWidth(85)
-  toolbarcontainer:SetHeight(availableHeight) -- Match the height of other containers
+  toolbarcontainer:SetRelativeWidth(0.20)
+  editframe.tabToolbar = toolbarcontainer
 
   local heading2 = AceGUI:Create("Label")
   heading2:SetText(L["Resets"])
@@ -840,10 +774,14 @@ function GSE:GUIDrawMacroEditor(container, version)
 
   layoutcontainer:AddChild(toolbarcontainer)
   container:AddChild(layoutcontainer)
+  GSE.RelayoutEditor()
 end
 
 function GSE.GUISelectEditorTab(container, event, group)
   container:ReleaseChildren()
+  editframe.tabScroll = nil
+  editframe.tabLayout = nil
+  editframe.tabToolbar = nil
   editframe.SelectedTab = group
   editframe.nameeditbox:SetText(GSE.GUIEditFrame.SequenceName)
   editframe.iconpicker:SetImage(GSE.GetMacroIcon(editframe.ClassID, editframe.SequenceName))
@@ -863,6 +801,7 @@ function GSE.GUISelectEditorTab(container, event, group)
     GSE:GUIDrawMacroEditor(container, group)
   end
 
+  GSE.RelayoutEditor()
 end
 
 function GSE.GUIDeleteVersion(version)

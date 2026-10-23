@@ -31,70 +31,31 @@ local maxWidth = GetScreenWidth() - 40
 viewframe.frame:SetMaxResize(maxWidth, maxHeight)
 viewframe.frame:SetMinResize(700, 450)
 
--- Add resize constraints to prevent window from going off screen
-viewframe.frame:HookScript("OnSizeChanged", function ()
-  local Left, Bottom, Width, Height = viewframe.frame:GetBoundsRect()
-  local screenHeight = GetScreenHeight()
-  local screenWidth = GetScreenWidth()
-  local maxHeight = screenHeight - 40  -- Leave some space at top/bottom
-  local maxWidth = screenWidth - 40    -- Leave some space at sides
-  
-  -- Get current position
-  local top = viewframe.frame:GetTop()
-  local bottom = viewframe.frame:GetBottom()
-  local left = viewframe.frame:GetLeft()
-  local right = viewframe.frame:GetRight()
-  
-  -- Check if we need to constrain the size or reposition
-  local needsResize = false
-  local needsMove = false
-  local newHeight = Height
-  local newWidth = Width
-  
-  if Height > maxHeight then
-    newHeight = maxHeight
-    needsResize = true
-  end
-  
-  if Width > maxWidth then
-    newWidth = maxWidth
-    needsResize = true
-  end
-  
-  -- Check if window is going off screen edges
-  if top and top > screenHeight then
-    needsMove = true
-  end
-  
-  if bottom and bottom < 0 then
-    needsMove = true
-  end
-  
-  if left and left < 0 then
-    needsMove = true
-  end
-  
-  if right and right > screenWidth then
-    needsMove = true
-  end
-  
-  -- Apply constraints if needed
-  if needsResize then
-    viewframe.frame:SetHeight(newHeight)
-    viewframe.frame:SetWidth(newWidth)
-  end
-  
-  -- Reposition if off screen
-  if needsMove then
-    local newPoint = {}
-    newPoint.x = math.min(math.max(left or 20, 20), screenWidth - newWidth - 20)
-    newPoint.y = math.min(math.max(bottom or 20, 20), screenHeight - newHeight - 20)
-    viewframe.frame:ClearAllPoints()
-    viewframe.frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", newPoint.x, newPoint.y)
-  end
+-- Keep the viewer content sized via AceGUI's own size callbacks.
+viewframe.frame:SetClampedToScreen(true)
 
-  viewframe:DoLayout()
-end)
+local origViewerOnWidthSet = viewframe.OnWidthSet
+viewframe.OnWidthSet = function(self, width)
+  if origViewerOnWidthSet then origViewerOnWidthSet(self, width) end
+  if GSE.RelayoutViewer then GSE.RelayoutViewer() end
+end
+local origViewerOnHeightSet = viewframe.OnHeightSet
+viewframe.OnHeightSet = function(self, height)
+  if origViewerOnHeightSet then origViewerOnHeightSet(self, height) end
+  if GSE.RelayoutViewer then GSE.RelayoutViewer() end
+end
+
+function GSE.RelayoutViewer()
+  local frame = GSE.GUIViewFrame
+  if not frame or not frame.content or not frame.viewScrollContainer then return end
+  frame:DoLayout()
+  local contentHeight = frame.content:GetHeight() or 0
+  if contentHeight <= 0 then return end
+  local toolbarHeight = (frame.viewToolbar and frame.viewToolbar.frame and frame.viewToolbar.frame:GetHeight()) or 30
+  local scrollHeight = math.max(150, contentHeight - toolbarHeight - 20)
+  frame.viewScrollContainer:SetHeight(scrollHeight)
+  frame:DoLayout()
+end
 
 function viewframe:clearpanels(widget, selected)
   GSE.PrintDebugMessage("widget = " .. widget:GetKey(), "GUI")
@@ -324,6 +285,7 @@ function GSE.GUIViewerToolbar(container)
   buttonGroup:AddChild(recordwindowbutton)
 
   container:AddChild(buttonGroup)
+  viewframe.viewToolbar = buttonGroup
 
   sequenceboxtext = sequencebox
 end
@@ -338,8 +300,8 @@ function GSE.GUIViewerLayout(mcontainer)
 
   local scrollcontainer = AceGUI:Create("SimpleGroup")
   scrollcontainer:SetFullWidth(true)
-  scrollcontainer:SetHeight(370)
   scrollcontainer:SetLayout("Fill")
+  viewframe.viewScrollContainer = scrollcontainer
 
 
   mcontainer:AddChild(scrollcontainer)
@@ -349,6 +311,7 @@ function GSE.GUIViewerLayout(mcontainer)
   viewframe.ScrollContainer = contentcontainer
 
   GSE.GUIViewerToolbar(mcontainer)
+  GSE.RelayoutViewer()
 
 end
 
@@ -381,6 +344,7 @@ function GSE.GUIShowViewer()
     GSE.GUICreateSequencePanels(viewframe,viewframe.ScrollContainer, k)
   end
   viewframe:Show()
+  GSE.RelayoutViewer()
 end
 
 function GSE.GUIConfigureMacroButton(button)

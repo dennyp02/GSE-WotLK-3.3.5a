@@ -94,10 +94,7 @@ function GSE.GUILoadEditor(key, incomingframe, recordedstring)
 	myUpdateFix()
 	GSE.GUIEditFrame:Show()
 	GSE.GUIEditFrame.ContentContainer:SelectTab("config")
-	if GSE.GUIEditorRefreshTimer then
-	  GSE:CancelTimer(GSE.GUIEditorRefreshTimer)
-	  GSE.GUIEditorRefreshTimer = nil
-	end
+	GSE.RelayoutEditor()
   end
 
 end
