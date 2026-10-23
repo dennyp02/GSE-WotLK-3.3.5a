@@ -134,10 +134,13 @@ function GSE.GUIEditorPerformLayout(frame)
   local nameeditbox = AceGUI:Create("EditBox")
   nameeditbox:SetLabel(L["Sequence Name"])
   nameeditbox:SetWidth(250)
-  nameeditbox:SetCallback("OnTextChanged", function() editframe.SequenceName = nameeditbox:GetText(); end)
+  nameeditbox:SetCallback("OnTextChanged", function()
+    editframe.SequenceName = nameeditbox:GetText()
+    if GSE.ValidateEditorSequenceName then GSE.ValidateEditorSequenceName() end
+  end)
   nameeditbox:DisableButton( true)
-  nameeditbox:SetText(editframe.SequenceName)
   editframe.nameeditbox = nameeditbox
+  nameeditbox:SetText(editframe.SequenceName)
   headerGroup:AddChild(nameeditbox)
 
   local spacerlabel = AceGUI:Create("Label")
@@ -193,6 +196,9 @@ function GSE.GUIEditorPerformLayout(frame)
   savebutton:SetText(L["Save"])
   savebutton:SetWidth(150)
   savebutton:SetCallback("OnClick", function()
+    if GSE.ValidateEditorSequenceName and not GSE.ValidateEditorSequenceName() then
+      return
+    end
     editframe.Sequence.ManualIntervention = true
     local sequenceName = GSE.NormalizeSequenceName(nameeditbox:GetText())
     if GSE.isEmpty(sequenceName) then
@@ -207,6 +213,7 @@ function GSE.GUIEditorPerformLayout(frame)
     editframe.save = true
   end)
   editButtonGroup:AddChild(savebutton)
+  editframe.SaveButton = savebutton
 
   local delbutton = AceGUI:Create("Button")
   delbutton:SetText(L["Delete"])
@@ -218,6 +225,7 @@ function GSE.GUIEditorPerformLayout(frame)
   editButtonGroup:AddChild(editOptionsbutton)
   frame:AddChild(editButtonGroup)
   editframe.editButtonGroup = editButtonGroup
+  if GSE.ValidateEditorSequenceName then GSE.ValidateEditorSequenceName() end
   GSE.RelayoutEditor()
 
 end

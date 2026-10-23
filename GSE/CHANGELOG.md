@@ -17,6 +17,7 @@
 - Fixed `/gse showspec` referencing an undefined class ID.
 - Redesigned the Sequence Viewer: compact auto-sized cards with class-coloured names and accents, grouped class headings, a live search filter, a cleaner auto-width toolbar and a subtle selection highlight.
 - Renaming a sequence in the editor now renames the existing sequence and its macro stub instead of creating a duplicate.
+- The editor now blocks saving/renaming to a name that already exists as a sequence or macro, shows the reason in the status bar, and disables Save.
 - Requires in-game verification with ElvUI enabled and disabled.
 
 ## [2.6.55](https://github.com/TimothyLuke/GnomeSequencer-Enhanced/tree/2.6.55) (2021-06-09)

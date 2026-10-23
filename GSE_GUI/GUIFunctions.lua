@@ -204,6 +204,54 @@ function GSE.GUIUpdateSequenceDefinition(classid, SequenceName, sequence, previo
 end
 
 
+--- Returns a conflict message if a sequence or macro with this name already exists.
+function GSE.GetSequenceNameConflict(classid, newName, originalName)
+  if GSE.isEmpty(newName) then
+    return L["No Sequence Name"]
+  end
+  if originalName and newName == originalName then
+    return nil
+  end
+  local existing = GSELibrary[classid] and GSELibrary[classid][newName]
+  if type(existing) == "table" and type(existing.MacroVersions) == "table" then
+    return L["A sequence with that name already exists."]
+  end
+  local macroIndex = GetMacroIndexByName(newName)
+  if macroIndex and macroIndex ~= 0 then
+    if originalName then
+      local oldIndex = GetMacroIndexByName(originalName)
+      if oldIndex and oldIndex ~= 0 and oldIndex == macroIndex then
+        return nil
+      end
+    end
+    return L["A macro with that name already exists."]
+  end
+  return nil
+end
+
+--- Validate the editor name and grey out Save when the name is taken.
+function GSE.ValidateEditorSequenceName()
+  local frame = GSE.GUIEditFrame
+  if not frame or not frame.nameeditbox then
+    return true
+  end
+  local newName = GSE.NormalizeSequenceName(frame.nameeditbox:GetText())
+  local conflict = GSE.GetSequenceNameConflict(frame.ClassID, newName, frame.OriginalSequenceName)
+  if conflict then
+    if frame.SaveButton then
+      frame.SaveButton:SetDisabled(true)
+    end
+    frame:SetStatusText("|cffff0000" .. conflict .. "|r")
+    return false
+  end
+  if frame.SaveButton then
+    frame.SaveButton:SetDisabled(false)
+  end
+  frame:SetStatusText("")
+  return true
+end
+
+
 function GSE.GUIGetColour(option)
   hex = string.gsub(option, "#","")
   return tonumber("0x".. string.sub(option,5,6))/255, tonumber("0x"..string.sub(option,7,8))/255, tonumber("0x"..string.sub(option,9,10))/255
