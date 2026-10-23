@@ -9,8 +9,7 @@
 - Normalized sequence names so generated names no longer create empty placeholder entries.
 - Fixed manual saves being ignored after the first save.
 - Hardened sequence loops against invalid saved entries.
-- Rebuilt the sequence editor's TabGroup widget (manual tab textures + local panel-template helpers) so tabs render as connected horizontal tabs instead of disconnected/frozen pieces.
-- Updated the private Dropdown / Dropdown-Items widgets to the newer AceGUI implementations and re-anchor the dropdown's middle/right textures on every acquire, fixing dropdowns that rendered only their left edge.
+- Vendored a complete, consistent AceGUI 3.0 set (core + all standard widgets) into the private `GSE-AceGUI-3.0` namespace, replacing the mixed old-core/new-widget setup. Fixes the editor's tab strip and the dropdowns that rendered only their left edge.
 - Requires in-game verification with ElvUI enabled and disabled.
 
 ## [2.6.55](https://github.com/TimothyLuke/GnomeSequencer-Enhanced/tree/2.6.55) (2021-06-09)

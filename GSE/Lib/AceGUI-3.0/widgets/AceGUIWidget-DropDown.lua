@@ -1,10 +1,10 @@
---[[ $Id$ ]]--
+--[[ $Id: AceGUIWidget-DropDown.lua 1284 2022-09-25 09:15:30Z nevcairiel $ ]]--
 local AceGUI = LibStub("GSE-AceGUI-3.0")
 
 -- Lua APIs
 local min, max, floor = math.min, math.max, math.floor
 local select, pairs, ipairs, type, tostring = select, pairs, ipairs, type, tostring
-local tonumber, tsort, error = tonumber, table.sort, error
+local tsort = table.sort
 
 -- WoW APIs
 local PlaySound = PlaySound
@@ -35,7 +35,7 @@ end
 
 do
 	local widgetType = "Dropdown-Pullout"
-	local widgetVersion = 5
+	local widgetVersion = 7
 
 	--[[ Static data ]]--
 
@@ -292,7 +292,9 @@ do
 
 		-- NOTE: The whole scroll frame code is copied from the AceGUI-3.0 widget ScrollFrame
 		local scrollFrame = CreateFrame("ScrollFrame", nil, frame)
+		scrollFrame:SetFrameLevel(frame:GetFrameLevel() + 1)
 		local itemFrame = CreateFrame("Frame", nil, scrollFrame)
+		itemFrame:SetFrameLevel(scrollFrame:GetFrameLevel() + 1)
 
 		self.scrollFrame = scrollFrame
 		self.itemFrame = itemFrame
@@ -301,6 +303,7 @@ do
 		itemFrame.obj = self
 
 		local slider = CreateFrame("Slider", "AceGUI30PulloutScrollbar"..count, scrollFrame)
+		slider:SetFrameLevel(scrollFrame:GetFrameLevel() + 1)
 		slider:SetOrientation("VERTICAL")
 		slider:SetHitRectInsets(0, 0, -10, 0)
 		slider:SetBackdrop(sliderBackdrop)
@@ -347,7 +350,7 @@ end
 
 do
 	local widgetType = "Dropdown"
-	local widgetVersion = 36
+	local widgetVersion = 38
 
 	--[[ Static data ]]--
 
@@ -456,13 +459,6 @@ do
 		self:SetLabel()
 		self:SetPulloutWidth(nil)
 		self.list = {}
-		if self.left and self.middle and self.right then
-			self.middle:ClearAllPoints()
-			self.right:ClearAllPoints()
-			self.middle:SetPoint("LEFT", self.left, "RIGHT", 0, 0)
-			self.middle:SetPoint("RIGHT", self.right, "LEFT", 0, 0)
-			self.right:SetPoint("TOPRIGHT", self.dropdown, "TOPRIGHT", 0, 17)
-		end
 	end
 
 	-- exported, AceGUI callback
@@ -596,41 +592,21 @@ do
 			return tostring(x) < tostring(y)
 		end
 	end
-
-	-- added by ElvUI
-	local sortValue = function(a,b)
-		if a and b and a[2] and b[2] then
-			return a[2] < b[2]
-		end
-	end
-
-	local function SetList(self, list, order, itemType, sortByValue)
+	local function SetList(self, list, order, itemType)
 		self.list = list or {}
 		self.pullout:Clear()
 		self.hasClose = nil
 		if not list then return end
 
 		if type(order) ~= "table" then
-			if sortByValue then -- added by ElvUI
-				for k, v in pairs(list) do
-					sortlist[#sortlist + 1] = {k,v}
-				end
-				tsort(sortlist, sortValue)
+			for v in pairs(list) do
+				sortlist[#sortlist + 1] = v
+			end
+			tsort(sortlist, sortTbl)
 
-				for i, sortedList in ipairs(sortlist) do
-					AddListItem(self, sortedList[1], sortedList[2], itemType)
-					sortlist[i] = nil
-				end
-			else -- this is the default way (unchanged by ElvUI)
-				for v in pairs(list) do
-					sortlist[#sortlist + 1] = v
-				end
-				tsort(sortlist, sortTbl)
-
-				for i, key in ipairs(sortlist) do
-					AddListItem(self, key, list[key], itemType)
-					sortlist[i] = nil
-				end
+			for i, key in ipairs(sortlist) do
+				AddListItem(self, key, list[key], itemType)
+				sortlist[i] = nil
 			end
 		else
 			for i, key in ipairs(order) do
@@ -671,8 +647,9 @@ do
 
 	local function Constructor()
 		local count = AceGUI:GetNextWidgetNum(widgetType)
-		local frame = CreateFrame("Frame", nil, UIParent)
+		local frame = CreateFrame("Frame", widgetType .. count, UIParent)
 		local dropdown = CreateFrame("Frame", "AceGUI30DropDown"..count, frame, "UIDropDownMenuTemplate")
+		dropdown:SetFrameLevel(frame:GetFrameLevel() + 1)
 
 		local self = {}
 		self.type = widgetType
@@ -712,9 +689,6 @@ do
 		local left = _G[dropdown:GetName() .. "Left"]
 		local middle = _G[dropdown:GetName() .. "Middle"]
 		local right = _G[dropdown:GetName() .. "Right"]
-		self.left = left
-		self.middle = middle
-		self.right = right
 
 		middle:ClearAllPoints()
 		right:ClearAllPoints()
@@ -730,7 +704,8 @@ do
 		button:SetScript("OnLeave",Control_OnLeave)
 		button:SetScript("OnClick",Dropdown_TogglePullout)
 
-		local button_cover = CreateFrame("BUTTON",nil,self.frame)
+		local button_cover = CreateFrame("Button",nil,self.frame)
+		button_cover:SetFrameLevel(self.frame:GetFrameLevel() + 1)
 		self.button_cover = button_cover
 		button_cover.obj = self
 		button_cover:SetPoint("TOPLEFT",self.frame,"BOTTOMLEFT",0,25)

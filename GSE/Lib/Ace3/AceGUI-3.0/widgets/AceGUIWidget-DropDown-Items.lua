@@ -1,4 +1,4 @@
---[[ $Id$ ]]--
+--[[ $Id: AceGUIWidget-DropDown-Items.lua 1272 2022-08-29 15:56:35Z nevcairiel $ ]]--
 
 local AceGUI = LibStub("GSE-AceGUI-3.0")
 
@@ -15,17 +15,6 @@ local function fixlevels(parent,...)
 	while child do
 		child:SetFrameLevel(parent:GetFrameLevel()+1)
 		fixlevels(child, child:GetChildren())
-		i = i + 1
-		child = select(i, ...)
-	end
-end
-
-local function fixstrata(strata, parent, ...)
-	local i = 1
-	local child = select(i, ...)
-	parent:SetFrameStrata(strata)
-	while child do
-		fixstrata(strata, child, child:GetChildren())
 		i = i + 1
 		child = select(i, ...)
 	end
@@ -169,7 +158,7 @@ function ItemBase.Create(type)
 	self.text = text
 
 	local highlight = frame:CreateTexture(nil, "OVERLAY")
-	highlight:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight") -- Interface\\QuestFrame\\UI-QuestTitleHighlight
+	highlight:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
 	highlight:SetBlendMode("ADD")
 	highlight:SetHeight(14)
 	highlight:ClearAllPoints()
@@ -182,7 +171,7 @@ function ItemBase.Create(type)
 	check:SetWidth(16)
 	check:SetHeight(16)
 	check:SetPoint("LEFT",frame,"LEFT",3,-1)
-	check:SetTexture("Interface\\Buttons\\UI-CheckBox-Check") -- Interface\\Buttons\\UI-CheckBox-Check
+	check:SetTexture("Interface\\Buttons\\UI-CheckBox-Check")
 	check:Hide()
 	self.check = check
 
@@ -190,7 +179,7 @@ function ItemBase.Create(type)
 	sub:SetWidth(16)
 	sub:SetHeight(16)
 	sub:SetPoint("RIGHT",frame,"RIGHT",-3,-1)
-	sub:SetTexture("Interface\\ChatFrame\\ChatFrameExpandArrow") -- Interface\\ChatFrame\\ChatFrameExpandArrow
+	sub:SetTexture("Interface\\ChatFrame\\ChatFrameExpandArrow")
 	sub:Hide()
 	self.sub = sub
 
@@ -246,7 +235,7 @@ end
 -- Special: Different text color and no highlight
 do
 	local widgetType = "Dropdown-Item-Header"
-	local widgetVersion = 1
+	local widgetVersion = 2
 
 	local function OnEnter(this)
 		local self = this.obj
@@ -295,7 +284,7 @@ end
 -- A simple button
 do
 	local widgetType = "Dropdown-Item-Execute"
-	local widgetVersion = 1
+	local widgetVersion = 2
 
 	local function Frame_OnClick(this, button)
 		local self = this.obj
@@ -323,7 +312,7 @@ end
 -- Does not close the pullout on click.
 do
 	local widgetType = "Dropdown-Item-Toggle"
-	local widgetVersion = 4
+	local widgetVersion = 5
 
 	local function UpdateToggle(self)
 		if self.value then
@@ -343,9 +332,9 @@ do
 		if self.disabled then return end
 		self.value = not self.value
 		if self.value then
-			PlaySound("igMainMenuOptionCheckBoxOn") -- SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON
+			PlaySound("igMainMenuOptionCheckBoxOn")
 		else
-			PlaySound("igMainMenuOptionCheckBoxOff") -- SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF
+			PlaySound("igMainMenuOptionCheckBoxOff")
 		end
 		UpdateToggle(self)
 		self:Fire("OnValueChanged", self.value)
@@ -383,7 +372,7 @@ end
 -- Does not close the pullout on click
 do
 	local widgetType = "Dropdown-Item-Menu"
-	local widgetVersion = 2
+	local widgetVersion = 3
 
 	local function OnEnter(this)
 		local self = this.obj
@@ -440,7 +429,7 @@ end
 -- A single line to separate items
 do
 	local widgetType = "Dropdown-Item-Separator"
-	local widgetVersion = 2
+	local widgetVersion = 3
 
 	-- exported, override
 	local function SetDisabled(self, disabled)
