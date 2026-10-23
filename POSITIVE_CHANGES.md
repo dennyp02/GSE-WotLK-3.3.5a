@@ -24,6 +24,7 @@ The existing `GSE/CHANGELOG.md` stays as-is; this file is a staging list for the
 - **Sequence Viewer redesign**: compact auto-sized cards with class-coloured names and accents, grouped class headings, a live search filter, an auto-width toolbar and a subtle selection highlight instead of the old fixed 300 px/yellow-border cards.
 - **Sequence rename**: editing a sequence name and saving now renames the existing sequence and its macro stub instead of creating a duplicate entry.
 - **Duplicate name guard**: the editor disables Save and shows a red status-bar warning when the sequence name already exists as another sequence or as a macro.
+- **Create/Delete Macro**: the Viewer action is labelled `Create Macro` / `Delete Macro` instead of `Create Icon` / `Delete Icon`, and it guards against a missing/empty sequence instead of erroring.
 - **`/gse showspec`**: fixed the undefined class ID in its output.
 - **TabGroup**: renders as connected horizontal top tabs.
 - **Dropdowns**: full body + working arrow (fixed by the consistent widget set + namespacing).

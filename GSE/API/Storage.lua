@@ -905,9 +905,25 @@ end
 --- Check if a macro has been created and if the create flag is true and the macro hasnt been created then create it.
 function GSE.OOCCheckMacroCreated(SequenceName, create)
   local found = false
-  local classid = GSE.GetCurrentClassID()
-  if GSE.isEmpty(GSELibrary[GSE.GetCurrentClassID()][SequenceName]) then
-    classid = 0
+  local sequence
+  local currentClassID = GSE.GetCurrentClassID()
+  if type(GSELibrary[currentClassID]) == "table" then
+    sequence = GSELibrary[currentClassID][SequenceName]
+  end
+  if type(sequence) ~= "table" and type(GSELibrary[0]) == "table" then
+    sequence = GSELibrary[0][SequenceName]
+  end
+  if type(sequence) ~= "table" then
+    for _, library in pairs(GSELibrary) do
+      if type(library) == "table" and type(library[SequenceName]) == "table" then
+        sequence = library[SequenceName]
+        break
+      end
+    end
+  end
+  if GSE.isEmpty(SequenceName) or type(sequence) ~= "table" or type(sequence.MacroVersions) ~= "table" then
+    GSE.PrintDebugMessage("OOCCheckMacroCreated: sequence not found: " .. tostring(SequenceName), "Storage")
+    return false
   end
   local macroIndex = GetMacroIndexByName(SequenceName)
   if macroIndex and macroIndex ~= 0 then
@@ -917,7 +933,7 @@ function GSE.OOCCheckMacroCreated(SequenceName, create)
     end
   else
     if create then
-      local icon = (GSE.isEmpty(GSELibrary[classid][SequenceName].Icon) and Statics.QuestionMark or GSELibrary[classid][SequenceName].Icon)
+      local icon = (GSE.isEmpty(sequence.Icon) and Statics.QuestionMark or sequence.Icon)
       GSE.CreateMacroIcon(SequenceName, icon)
       found = true
     end

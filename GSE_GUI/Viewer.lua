@@ -237,7 +237,7 @@ function GSE.GUIViewerToolbar(container)
   spacer:SetHeight(1)
   buttonGroup:AddChild(spacer)
 
-  local disableSeqbutton = addButton(L["Create Icon"], nil, true)
+  local disableSeqbutton = addButton(L["Create Macro"], nil, true)
   viewframe.MacroIconButton = disableSeqbutton
 
   addButton(L["Record Macro"], function()
@@ -304,7 +304,7 @@ function GSE.RefreshSequenceViewer()
   if viewframe.ExportButton then viewframe.ExportButton:SetDisabled(true) end
   if viewframe.SendButton then viewframe.SendButton:SetDisabled(true) end
   if viewframe.MacroIconButton then
-    viewframe.MacroIconButton:SetText(L["Create Icon"])
+    viewframe.MacroIconButton:SetText(L["Create Macro"])
     viewframe.MacroIconButton:SetDisabled(true)
   end
 
@@ -386,28 +386,35 @@ function GSE.GUIShowViewer()
 end
 
 function GSE.GUIConfigureMacroButton(button)
-  if GSE.OOCCheckMacroCreated(GSE.GUIViewFrame.SequenceName) then
-    button:SetText(L["Delete Icon"])
+  local sequenceName = GSE.GUIViewFrame.SequenceName
+  local classid = tonumber(GSE.GUIViewFrame.ClassID) or 0
+  local sequence = GSELibrary[classid] and GSELibrary[classid][sequenceName]
+  if GSE.isEmpty(sequenceName) or type(sequence) ~= "table" or type(sequence.MacroVersions) ~= "table" then
+    button:SetText(L["Create Macro"])
+    button:SetDisabled(true)
+    return
+  end
+  local panelKey = tostring(GSE.GUIViewFrame.ClassID) .. "," .. sequenceName
+  if GSE.OOCCheckMacroCreated(sequenceName) then
+    button:SetText(L["Delete Macro"])
     button:SetCallback("OnClick", function()
-      GSE.DeleteMacroStub(GSE.GUIViewFrame.SequenceName)
+      GSE.DeleteMacroStub(sequenceName)
       GSE.GUIConfigureMacroButton(button)
-      GSE.GUIViewFrame.panels[viewframe.ClassID .."," .. GSE.GUIViewFrame.SequenceName].Icon:SetImage(GSE.GetMacroIcon(tonumber(viewframe.ClassID), GSE.GUIViewFrame.SequenceName))
+      local panel = GSE.GUIViewFrame.panels[panelKey]
+      if panel and panel.Icon then
+        panel.Icon:SetImage(GSE.GetMacroIcon(classid, sequenceName))
+      end
     end)
   else
-    button:SetText(L["Create Icon"])
+    button:SetText(L["Create Macro"])
     button:SetCallback("OnClick", function()
-      GSE.OOCCheckMacroCreated(GSE.GUIViewFrame.SequenceName, true)
+      GSE.OOCCheckMacroCreated(sequenceName, true)
       GSE.GUIConfigureMacroButton(button)
-      GSE.GUIViewFrame.panels[viewframe.ClassID .."," .. GSE.GUIViewFrame.SequenceName].Icon:SetImage(GSE.GetMacroIcon(tonumber(viewframe.ClassID), GSE.GUIViewFrame.SequenceName))
+      local panel = GSE.GUIViewFrame.panels[panelKey]
+      if panel and panel.Icon then
+        panel.Icon:SetImage(GSE.GetMacroIcon(classid, sequenceName))
+      end
     end)
   end
-  if GSE.isEmpty(GSE.GUIViewFrame.SequenceName) then
-    button:SetDisabled(true)
-  else
-    button:SetDisabled(false)
-  end
-  if GSE.GUIViewFrame.ClassID == 0 or GSE.GUIViewFrame.ClassID == GSE.GetCurrentClassID() then
-    button:SetDisabled(true)
-  end
-
+  button:SetDisabled(false)
 end
