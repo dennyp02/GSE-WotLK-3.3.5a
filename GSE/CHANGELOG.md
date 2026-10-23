@@ -11,6 +11,7 @@
 - Hardened sequence loops against invalid saved entries.
 - Vendored a complete, consistent AceGUI 3.0 set (core + all standard widgets) into the private `GSE-AceGUI-3.0` namespace, replacing the mixed old-core/new-widget setup. All private frame names are `GSE`-prefixed so they cannot collide with the real AceGUI instance's frames. Fixes the editor's tab strip and the dropdowns that rendered only their left edge or had a dead arrow.
 - Raised all GSE static popups above the editor/viewer so confirmation dialogs (e.g. delete macro) are never hidden behind an AceGUI window.
+- Fixed editor/viewer resize handling by hooking AceGUI's own `OnSizeChanged` instead of replacing it, so the content area, tabs, toolbar, and bottom button row stay correctly laid out after resizing.
 - Requires in-game verification with ElvUI enabled and disabled.
 
 ## [2.6.55](https://github.com/TimothyLuke/GnomeSequencer-Enhanced/tree/2.6.55) (2021-06-09)

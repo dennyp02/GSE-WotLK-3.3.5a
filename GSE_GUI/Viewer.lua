@@ -32,7 +32,7 @@ viewframe.frame:SetMaxResize(maxWidth, maxHeight)
 viewframe.frame:SetMinResize(700, 450)
 
 -- Add resize constraints to prevent window from going off screen
-viewframe.frame:SetScript("OnSizeChanged", function ()
+viewframe.frame:HookScript("OnSizeChanged", function ()
   local Left, Bottom, Width, Height = viewframe.frame:GetBoundsRect()
   local screenHeight = GetScreenHeight()
   local screenWidth = GetScreenWidth()
@@ -91,11 +91,6 @@ viewframe.frame:SetScript("OnSizeChanged", function ()
     newPoint.y = math.min(math.max(bottom or 20, 20), screenHeight - newHeight - 20)
     viewframe.frame:ClearAllPoints()
     viewframe.frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", newPoint.x, newPoint.y)
-  end
-
-  if Width > 0 and Height > 0 then
-    viewframe:OnWidthSet(Width)
-    viewframe:OnHeightSet(Height)
   end
 
   viewframe:DoLayout()

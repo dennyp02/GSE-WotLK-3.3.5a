@@ -38,19 +38,6 @@ editframe.Bottom = fbottom
 editframe.Width = fwidth
 editframe.Height = fheight
 
-local syncingEditorSize = false
-local function SyncEditorContentSize()
-  if syncingEditorSize then return end
-  local width, height = editframe.frame:GetWidth(), editframe.frame:GetHeight()
-  if not width or not height or width <= 0 or height <= 0 then return end
-  syncingEditorSize = true
-  editframe:SetWidth(width)
-  editframe:SetHeight(height)
-  syncingEditorSize = false
-  editframe.Width = width
-  editframe.Height = height
-end
-
 editframe:SetTitle(L["Sequence Editor"])
 --editframe:SetStatusText(L["Gnome Sequencer: Sequence Editor."])
 editframe:SetCallback("OnClose", function (self)
@@ -80,17 +67,17 @@ editframe.frame:SetMinResize(600, 500)
 local defaultHeight = GetScreenHeight() * 1.0
 editframe:SetCallback("OnShow", function()
   editframe:SetHeight(defaultHeight)
-  SyncEditorContentSize()
   if GSE.ScheduleEditorTabRefresh then
     GSE.ScheduleEditorTabRefresh()
   end
 end)
-editframe.frame:SetScript("OnSizeChanged", function ()
-  if syncingEditorSize then return end
+editframe.frame:HookScript("OnSizeChanged", function ()
   local left, bottom, width, height = editframe.frame:GetBoundsRect()
-  if not width or not height then return end
+  if not width or not height or width <= 0 or height <= 0 then return end
   editframe.Left = left
   editframe.Bottom = bottom
+  editframe.Width = width
+  editframe.Height = height
 
   local screenHeight = GetScreenHeight()
   local screenWidth = GetScreenWidth()
@@ -135,8 +122,6 @@ editframe.frame:SetScript("OnSizeChanged", function ()
     editframe.frame:ClearAllPoints()
     editframe.frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", newPoint.x, newPoint.y)
   end
-
-  SyncEditorContentSize()
 
   -- Update TabGroup height and layout
   if editframe.updateTabGroupHeight then
